@@ -37,16 +37,16 @@ Gomme « surligneur seulement »,gomme,should,yes,yes,phase 2
 Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé,pages,must,yes,yes,phase 2
 Fond par défaut dans les paramètres,pages,should,yes,partial,phase 2
 Réorganiser / supprimer des pages + miniatures,pages,must,yes,yes,phase 2
-Lasso libre (traits surlignages formes images),lasso,must,yes,no,phase 3
-Lasso : déplacer,lasso,must,yes,no,phase 3
-Lasso : redimensionner (poignées + proportions),lasso,must,yes,no,phase 3
-Lasso : pivoter,lasso,should,yes,no,phase 3
-Lasso : changer couleur / épaisseur,lasso,should,yes,no,phase 3
-Lasso : copier / couper / coller / dupliquer / supprimer,lasso,must,yes,no,phase 3
-Images : insertion depuis fichier,images,must,yes,no,phase 3
-Images : glisser-déposer,images,should,yes,no,phase 3
-Images : coller depuis le presse-papiers,images,must,yes,no,phase 3 ; captures d'écran
-Images : recadrage simple,images,should,yes,no,phase 3
+Lasso libre (traits surlignages formes images),lasso,must,yes,yes,phase 3
+Lasso : déplacer,lasso,must,yes,yes,phase 3
+Lasso : redimensionner (poignées + proportions),lasso,must,yes,yes,phase 3
+Lasso : pivoter,lasso,should,yes,yes,phase 3
+Lasso : changer couleur / épaisseur,lasso,should,yes,yes,phase 3
+Lasso : copier / couper / coller / dupliquer / supprimer,lasso,must,yes,yes,phase 3
+Images : insertion depuis fichier,images,must,yes,yes,phase 3
+Images : glisser-déposer,images,should,yes,yes,phase 3
+Images : coller depuis le presse-papiers,images,must,yes,yes,phase 3 ; captures d'écran
+Images : recadrage simple,images,should,yes,yes,phase 3
 Formes auto-corrigées (maintien ~0.5 s),formes,must,yes,no,phase 4 ; ligne rect cercle ellipse triangle flèche
 Forme reprend couleur et épaisseur du trait,formes,must,yes,no,phase 4
 Option pour désactiver la reconnaissance,formes,should,yes,no,phase 4
