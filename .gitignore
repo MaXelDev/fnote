@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Config locale (chemin du vault, préférences) — ne jamais committer
+.claude/settings.local.json
+config.json
+
+# Notes et documents personnels — ne jamais committer
+*.plume
+*.pdf
+!tests/fixtures/*.pdf
+*.blob
