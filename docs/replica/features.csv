@@ -1,0 +1,78 @@
+feature,area,priority,original,clone,notes
+Écriture au stylet avec pression (épaisseur variable),encre,must,yes,no,phase 1 — critère n°1
+Tracé incrémental sans retard visible (latence minimale),encre,must,yes,no,phase 1 — critère n°1 ; cache bitmap par page
+Lissage du trait sans retard (finalisé au lever),encre,must,yes,no,phase 1
+Courbe de pression réglable,encre,must,partial,no,phase 1 ; Samsung n'expose qu'un réglage de sensibilité
+Curseur caché quand le stylet est en proximité,stylet,must,yes,no,phase 1 — critère n°1
+Point discret de survol sous la pointe,stylet,should,yes,no,phase 1 ; option
+Rejet de la paume (tactile ignoré si stylet proche),stylet,must,yes,no,phase 1
+Un doigt = défiler / deux doigts = zoom,navigation,must,yes,no,phase 1
+Le doigt ne dessine pas (option pour l'activer),stylet,must,yes,no,phase 1
+Bouton latéral maintenu = gomme temporaire (ou lasso),stylet,must,yes,no,phase 2 ; configurable
+Souris dessine / molette défile / Ctrl+molette zoome,navigation,must,partial,no,phase 1
+Fenêtre de diagnostic --debug-tablet,stylet,must,no,no,phase 0 ; spécifique Plume
+Mode --debug-perf (fps et temps de rendu),encre,should,no,no,phase 1 ; spécifique Plume
+Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons),édition,must,yes,no,phase 1
+Sauvegarde automatique après inactivité,fichiers,must,yes,no,phase 1
+Sauvegarde atomique (aucune perte sur crash),fichiers,must,partial,no,phase 0
+Format .plume (ZIP + document.json versionné + assets),fichiers,must,no,no,phase 0 ; Samsung utilise .sdocx
+Défilement vertical continu multi-pages A4,pages,must,yes,no,phase 1
+Ajout automatique de page en bas,pages,must,yes,no,phase 1
+Rendu des seules pages visibles,encre,must,yes,no,phase 1 ; 60 fps sur 30 pages
+Zoom fluide (aperçu mis à l'échelle puis net),navigation,must,yes,no,phase 1
+Ajuster à la largeur,navigation,should,yes,no,phase 2
+Types de pointe : plume / bille / crayon,stylo,should,yes,no,phase 2 ; Samsung en propose plus (pinceau calligraphie…)
+3 à 5 stylos favoris (outil+couleur+épaisseur),stylo,must,yes,no,phase 2
+Palette prédéfinie ≥ 16 couleurs,couleurs,must,yes,no,phase 2
+Sélecteur avancé HSV + RGB + HEX + opacité,couleurs,must,yes,no,phase 2
+Couleurs récentes + ajout à la palette,couleurs,should,yes,no,phase 2
+Surligneur translucide en multiply sous l'encre,surligneur,must,yes,no,phase 2
+Surligneur sans accumulation d'opacité dans un trait,surligneur,must,yes,no,phase 2
+Surligneur droit (redressement horizontal),surligneur,should,yes,no,phase 2
+Couleurs de surligneur prédéfinies + libre,surligneur,must,yes,no,phase 2
+Gomme trait entier,gomme,must,yes,no,phase 2
+Gomme partielle (coupe le trait),gomme,must,yes,no,phase 2
+Taille de gomme réglable,gomme,should,yes,no,phase 2
+Gomme « surligneur seulement »,gomme,should,yes,no,phase 2
+Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé,pages,must,yes,no,phase 2
+Fond par défaut dans les paramètres,pages,should,yes,no,phase 2
+Réorganiser / supprimer des pages + miniatures,pages,must,yes,no,phase 2
+Lasso libre (traits surlignages formes images),lasso,must,yes,no,phase 3
+Lasso : déplacer,lasso,must,yes,no,phase 3
+Lasso : redimensionner (poignées + proportions),lasso,must,yes,no,phase 3
+Lasso : pivoter,lasso,should,yes,no,phase 3
+Lasso : changer couleur / épaisseur,lasso,should,yes,no,phase 3
+Lasso : copier / couper / coller / dupliquer / supprimer,lasso,must,yes,no,phase 3
+Images : insertion depuis fichier,images,must,yes,no,phase 3
+Images : glisser-déposer,images,should,yes,no,phase 3
+Images : coller depuis le presse-papiers,images,must,yes,no,phase 3 ; captures d'écran
+Images : recadrage simple,images,could,yes,no,phase 3
+Formes auto-corrigées (maintien ~0.5 s),formes,must,yes,no,phase 4 ; ligne rect cercle ellipse triangle flèche
+Forme reprend couleur et épaisseur du trait,formes,must,yes,no,phase 4
+Option pour désactiver la reconnaissance,formes,should,yes,no,phase 4
+Règle virtuelle affichable,règle,must,no,no,phase 4 ; prioritaire ; absente de Samsung Notes PC (présente sur iPad)
+Règle déplaçable et pivotable deux doigts / poignée,règle,must,no,no,phase 4
+Règle : angle affiché + aimantation 0/15/30/45/90°,règle,must,no,no,phase 4
+Trait aimanté au bord de la règle (stylo et surligneur),règle,must,no,no,phase 4
+Graduations en cm,règle,should,no,no,phase 4
+Import PDF (une page = une page avec fond PDF),pdf,must,yes,no,phase 5
+Insérer des pages vierges entre pages PDF,pdf,must,yes,no,phase 5
+Export PDF vectoriel (texte d'origine sélectionnable),pdf,must,partial,no,phase 5 ; Samsung aplatit parfois
+Export PDF d'une note sans PDF source,pdf,must,yes,no,phase 5
+Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,no,phase 5 ; spécifique Plume
+Panneau arborescence du vault (.plume + .pdf),notes,must,partial,no,phase 6 ; Samsung a des dossiers internes
+Créer / renommer / déplacer des notes et dossiers,notes,must,yes,no,phase 6
+Supprimer vers la corbeille système,notes,must,yes,no,phase 6
+Plusieurs notes en onglets,notes,should,no,no,phase 6
+Paramètres dans ~/.config/plume/config.json,paramètres,must,no,no,phase 0
+Plein écran F11,interface,should,yes,no,phase 6
+Thème clair/sombre suivant le système,interface,should,yes,no,phase 6 ; fonds de page restent blancs
+Raccourcis clavier des outils,interface,should,yes,no,phase 6
+Barre d'outils compacte à gros boutons pour stylet,interface,must,yes,no,phase 2
+Synchronisation / cloud / compte Samsung,hors périmètre,skip,yes,no,7.12 — 100 % local
+Recherche dans l'écriture manuscrite (OCR),hors périmètre,skip,yes,no,7.12
+Texte tapé / zones de texte,hors périmètre,skip,yes,no,7.12
+Enregistrement audio synchronisé,hors périmètre,skip,yes,no,7.12
+Assistant IA (résumé / correction / mise en forme),hors périmètre,skip,yes,no,service distant ; non demandé
+Notes partagées / collaboration,hors périmètre,skip,yes,no,réseau
+Compatibilité Windows / macOS,hors périmètre,skip,yes,no,7.12
