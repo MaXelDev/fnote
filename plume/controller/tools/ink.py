@@ -39,6 +39,8 @@ class InkTool(Tool):
         w = self.spec["width"]
         if self.spec["tool"] == "fountain":
             w *= float(self.canvas.curve(pressure))
+        elif self.spec["tool"] == "pencil":
+            w *= 0.6 + 0.4 * float(self.canvas.curve(pressure))
         return max(w * self.canvas.zoom, 0.6)
 
     # ----- geste -----
