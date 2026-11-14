@@ -1,0 +1,17 @@
+{
+  "request_patterns": ["\\bi wish\\b","\\bplease add\\b","\\bwould be (nice|great|good|helpful)\\b","\\bwould love\\b","\\bno way to\\b","\\bmissing\\b","\\bdoesn'?t (have|support|let|allow)\\b","\\bfeature request\\b","\\bsupport for\\b","\\b(add|allow|implement)\\b"],
+  "themes": [
+    {"id":"latency","label":"Encre lente, saccadée, en retard","kind":"complaint","patterns":["\\bslow","\\blag","\\blatenc","\\bchoppy","\\bdelay","\\bsmooth","\\bspline","\\binterpolat","\\bfeels good\\b","\\bskips?\\b"]},
+    {"id":"cursor","label":"Curseur / pointeur qui gêne","kind":"complaint","patterns":["\\bcursor","\\bpointer","\\bmouse pointer\\b","\\bhover"]},
+    {"id":"input","label":"Stylet, pression, tactile mal gérés","kind":"complaint","patterns":["\\bpressure","\\btablet input\\b","\\bpinch","\\btouch","\\bpalm","\\bstylus","\\bwayland","\\bpen\\b"]},
+    {"id":"pdf","label":"PDF : annotation, texte, pages","kind":"request","patterns":["\\bpdf"]},
+    {"id":"highlighter","label":"Surligneur","kind":"request","patterns":["\\bhighlight","\\btransparen"]},
+    {"id":"eraser","label":"Gomme","kind":"request","patterns":["\\beras"]},
+    {"id":"shapes","label":"Formes, règle, traits droits","kind":"request","patterns":["\\bshape","\\bruler","\\bprotractor","\\bstraight","\\bline\\b"]},
+    {"id":"images","label":"Images (recadrer, pivoter)","kind":"request","patterns":["\\bimage"]},
+    {"id":"pages","label":"Pages, espace, canevas","kind":"request","patterns":["\\bpage","\\bvertical space\\b","\\binfinit","\\bcanvas"]},
+    {"id":"tools","label":"Outils rapides, raccourcis, palette","kind":"request","patterns":["\\bshortcut","\\bkeybinding","\\btemporary tool\\b","\\bpalette","\\bcolor","\\bthickness","\\bslider"]},
+    {"id":"files","label":"Fichiers, sauvegarde, récents","kind":"request","patterns":["\\bautosave","\\brecent","\\bfile\\b","\\bexport"]},
+    {"id":"bugs","label":"Plantages et bugs","kind":"complaint","patterns":["\\bcrash","\\bfreez","\\bbug","\\bbroken","\\bregression","\\bunable to\\b"]}
+  ]
+}

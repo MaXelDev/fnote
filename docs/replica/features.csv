@@ -28,7 +28,7 @@ Sélecteur avancé HSV + RGB + HEX + opacité,couleurs,must,yes,no,phase 2
 Couleurs récentes + ajout à la palette,couleurs,should,yes,no,phase 2
 Surligneur translucide en multiply sous l'encre,surligneur,must,yes,no,phase 2
 Surligneur sans accumulation d'opacité dans un trait,surligneur,must,yes,no,phase 2
-Surligneur droit (redressement horizontal),surligneur,should,yes,no,phase 2
+Surligneur droit (redressement horizontal),surligneur,must,yes,no,phase 2
 Couleurs de surligneur prédéfinies + libre,surligneur,must,yes,no,phase 2
 Gomme trait entier,gomme,must,yes,no,phase 2
 Gomme partielle (coupe le trait),gomme,must,yes,no,phase 2
@@ -46,7 +46,7 @@ Lasso : copier / couper / coller / dupliquer / supprimer,lasso,must,yes,no,phase
 Images : insertion depuis fichier,images,must,yes,no,phase 3
 Images : glisser-déposer,images,should,yes,no,phase 3
 Images : coller depuis le presse-papiers,images,must,yes,no,phase 3 ; captures d'écran
-Images : recadrage simple,images,could,yes,no,phase 3
+Images : recadrage simple,images,should,yes,no,phase 3
 Formes auto-corrigées (maintien ~0.5 s),formes,must,yes,no,phase 4 ; ligne rect cercle ellipse triangle flèche
 Forme reprend couleur et épaisseur du trait,formes,must,yes,no,phase 4
 Option pour désactiver la reconnaissance,formes,should,yes,no,phase 4
@@ -76,3 +76,10 @@ Enregistrement audio synchronisé,hors périmètre,skip,yes,no,7.12
 Assistant IA (résumé / correction / mise en forme),hors périmètre,skip,yes,no,service distant ; non demandé
 Notes partagées / collaboration,hors périmètre,skip,yes,no,réseau
 Compatibilité Windows / macOS,hors périmètre,skip,yes,no,7.12
+Zoom : cache mis à l'échelle pendant le geste puis rendu net,navigation,must,no,no,phase 1 ; fix #1 (Rnote #7)
+Souris ignorée quand le stylet est proche (pas de saut de trait),stylet,must,no,no,phase 1 ; fix #2 (Rnote #1440)
+Coordonnées exactes à 125/150/200 % d'échelle Wayland,stylet,must,no,no,phase 1 ; fix #3 (Rnote #338)
+Gomme par intersection de segments (aucun trait sauté),gomme,must,no,no,phase 2 ; fix #4 (Rnote #1247)
+Surligneur rendu en un seul chemin (opacité uniforme),surligneur,must,no,no,phase 2 ; fix #5 (Rnote #106 #891)
+Une seule barre d'outils + réglages en popover,interface,must,no,no,phase 2 ; fix #6 (HN)
+--debug-tablet affiche l'échelle et le décalage stylet/pointeur,stylet,should,no,no,phase 0 ; fix #7 (Rnote #1543)

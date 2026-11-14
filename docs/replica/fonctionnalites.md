@@ -1,9 +1,8 @@
 # Matrice de fonctionnalités — Plume
 
-Checklist du projet. Source de vérité : `features.csv` (colonne `clone` : `no` → `partial` → `yes`, lue par `replica-diff`).
+Checklist du projet. Source de vérité : `features.csv` (colonne `clone` : `no` → `partial` → `yes`, lue par `replica-diff`). Ce fichier est généré par `matrice.py`.
 
-Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, **skip** = hors périmètre.
-Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = existe sous une autre forme, `no` = propre à Plume).
+Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, **skip** = hors périmètre. Colonne *Samsung* : `partial` = existe sous une autre forme, `no` = propre à Plume (ou correctif issu de `fixes.md`).
 
 ## Phase 0 — Squelette
 
@@ -13,6 +12,7 @@ Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = exist
 | Sauvegarde atomique (aucune perte sur crash) | fichiers | must | partial | no |  |
 | Format .plume (ZIP + document.json versionné + assets) | fichiers | must | no | no | Samsung utilise .sdocx |
 | Paramètres dans ~/.config/plume/config.json | paramètres | must | no | no |  |
+| --debug-tablet affiche l'échelle et le décalage stylet/pointeur | stylet | should | no | no | fix #7 (Rnote #1543) |
 
 ## Phase 1 — Moteur d'encre
 
@@ -35,6 +35,9 @@ Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = exist
 | Ajout automatique de page en bas | pages | must | yes | no |  |
 | Rendu des seules pages visibles | encre | must | yes | no | 60 fps sur 30 pages |
 | Zoom fluide (aperçu mis à l'échelle puis net) | navigation | must | yes | no |  |
+| Zoom : cache mis à l'échelle pendant le geste puis rendu net | navigation | must | no | no | fix #1 (Rnote #7) |
+| Souris ignorée quand le stylet est proche (pas de saut de trait) | stylet | must | no | no | fix #2 (Rnote #1440) |
+| Coordonnées exactes à 125/150/200 % d'échelle Wayland | stylet | must | no | no | fix #3 (Rnote #338) |
 
 ## Phase 2 — Outils de base
 
@@ -49,7 +52,7 @@ Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = exist
 | Couleurs récentes + ajout à la palette | couleurs | should | yes | no |  |
 | Surligneur translucide en multiply sous l'encre | surligneur | must | yes | no |  |
 | Surligneur sans accumulation d'opacité dans un trait | surligneur | must | yes | no |  |
-| Surligneur droit (redressement horizontal) | surligneur | should | yes | no |  |
+| Surligneur droit (redressement horizontal) | surligneur | must | yes | no |  |
 | Couleurs de surligneur prédéfinies + libre | surligneur | must | yes | no |  |
 | Gomme trait entier | gomme | must | yes | no |  |
 | Gomme partielle (coupe le trait) | gomme | must | yes | no |  |
@@ -59,6 +62,9 @@ Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = exist
 | Fond par défaut dans les paramètres | pages | should | yes | no |  |
 | Réorganiser / supprimer des pages + miniatures | pages | must | yes | no |  |
 | Barre d'outils compacte à gros boutons pour stylet | interface | must | yes | no |  |
+| Gomme par intersection de segments (aucun trait sauté) | gomme | must | no | no | fix #4 (Rnote #1247) |
+| Surligneur rendu en un seul chemin (opacité uniforme) | surligneur | must | no | no | fix #5 (Rnote #106 #891) |
+| Une seule barre d'outils + réglages en popover | interface | must | no | no | fix #6 (HN) |
 
 ## Phase 3 — Lasso et images
 
@@ -73,7 +79,7 @@ Colonne *Samsung* : la fonction existe-t-elle dans l'original (`partial` = exist
 | Images : insertion depuis fichier | images | must | yes | no |  |
 | Images : glisser-déposer | images | should | yes | no |  |
 | Images : coller depuis le presse-papiers | images | must | yes | no | captures d'écran |
-| Images : recadrage simple | images | could | yes | no |  |
+| Images : recadrage simple | images | should | yes | no |  |
 
 ## Phase 4 — Formes et règle
 
