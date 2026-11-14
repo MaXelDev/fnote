@@ -4,8 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import (QDockWidget, QFileDialog, QInputDialog, QLabel, QMainWindow, QMenu, QMessageBox,
+from PySide6.QtGui import QAction, QIcon, QKeySequence
+from PySide6.QtWidgets import (QDockWidget, QFileDialog, QInputDialog, QMainWindow, QMenu, QMessageBox,
                                QTabWidget, QVBoxLayout, QWidget)
 
 from ..controller.document_controller import DocumentController
@@ -15,7 +15,10 @@ from ..model.config import Config
 from ..model.document import Document
 from .canvas import Canvas
 from .pages_panel import PagesPanel
+from .settings_dialog import SettingsDialog
 from .toolbar import Toolbar
+from .vault_browser import VaultBrowser
+from .welcome import LOGO, Welcome
 
 
 class NoteTab(QWidget):
@@ -52,21 +55,24 @@ class MainWindow(QMainWindow):
         self.debug_perf = debug_perf
         self.tools = ToolState(config)
         self.tools.changed.connect(self._tools_changed)
+        from PySide6.QtCore import QTimer
+        self._config_timer = QTimer(self, singleShot=True, interval=800, timeout=self.config.save)
         self.extra_actions = {}  # actions de barre ajoutées par d'autres modules : nom → f(onglet)
         from ..pdf.companion import CompanionExporter
         self.companion = CompanionExporter(self)
         self.companion.failed.connect(lambda msg: self.statusBar().showMessage(f"Export PDF compagnon impossible : {msg}", 8000))
         self.companion.skipped.connect(lambda msg: self.statusBar().showMessage(msg, 8000))
         self.resize(1200, 860)
+        self.setWindowIcon(QIcon(str(LOGO)))
 
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
         self.tabs.setDocumentMode(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
-        self.empty = QLabel("Crée une note (Ctrl+N) ou ouvre-en une (Ctrl+O).")
-        self.empty.setObjectName("muted")
-        self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.empty = Welcome(config)
+        self.empty.action.connect(self._welcome_action)
+        self.empty.openRecent.connect(self.open_file)
         self.tabs.addTab(self.empty, "Accueil")
         self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
         self.setCentralWidget(self.tabs)
@@ -81,6 +87,21 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.pages_dock)
         self.pages_dock.hide()
         self.pages_dock.visibilityChanged.connect(lambda on: self.toolbar.set_checked("pages", on))
+        self.vault_browser = VaultBrowser()
+        self.vault_browser.openNote.connect(self.open_file)
+        self.vault_browser.importPdf.connect(lambda p: self.import_pdf(p, p.parent))
+        self.vault_browser.newNoteIn.connect(self.new_note)
+        self.vault_browser.pathMoved.connect(self.path_moved)
+        self.vault_browser.pathDeleted.connect(self.path_deleted)
+        self.vault_dock = QDockWidget("Notes", self)
+        self.vault_dock.setObjectName("vault")
+        self.vault_dock.setWidget(self.vault_browser)
+        self.vault_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.vault_dock)
+        self.vault_dock.visibilityChanged.connect(lambda on: self.toolbar.set_checked("sidebar", on))
+        self.toolbar.buttons["sidebar"].setCheckable(True)
+        self.vault_browser.set_root(self.vault())
+        self.vault_dock.setVisible(self.vault() is not None)
         self._build_menus()
         self.menuBar().hide()  # tout passe par la barre d'outils et le bouton « Menu »
         self.tabs.currentChanged.connect(lambda *_: self._on_tab_changed())
@@ -116,6 +137,7 @@ class MainWindow(QMainWindow):
         self._action(m, "Exporter en PDF…", self.export_pdf_dialog, "Ctrl+E")
         m.addSeparator()
         self._action(m, "Choisir le vault…", self.choose_vault)
+        self._action(m, "Paramètres…", self.show_settings, "Ctrl+,")
         m.addSeparator()
         self._action(m, "Quitter", self.close, QKeySequence.StandardKey.Quit)
         e = self.menuBar().addMenu("&Édition")
@@ -161,6 +183,8 @@ class MainWindow(QMainWindow):
             self.fit_width()
         elif name == "pages":
             self.pages_dock.setVisible(not self.pages_dock.isVisible())
+        elif name == "sidebar":
+            self.vault_dock.setVisible(not self.vault_dock.isVisible())
         elif name == "menu":
             b = self.toolbar.buttons["menu"]
             self.app_menu.exec(b.mapToGlobal(b.rect().bottomLeft()))
@@ -230,7 +254,7 @@ class MainWindow(QMainWindow):
     def _tools_changed(self):
         for tab in self.note_tabs():
             tab.apply_tools()
-        self.config.save()
+        self._config_timer.start()  # sauvegarde groupée : un curseur qu'on glisse = une écriture
 
     def undo(self):
         if tab := self.current_tab():
@@ -270,7 +294,57 @@ class MainWindow(QMainWindow):
         if folder:
             self.config.vault_path = folder
             self.config.save()
-            self._update_title()
+            self._vault_changed()
+
+    def _vault_changed(self):
+        self.vault_browser.set_root(self.vault())
+        if self.vault() is not None:
+            self.vault_dock.show()
+        self.empty.refresh()
+        self._update_title()
+
+    def _welcome_action(self, key: str):
+        {"vault": self.choose_vault, "new": self.new_note, "open": self.open_dialog,
+         "import": self.import_pdf_dialog}[key]()
+
+    def show_settings(self):
+        dlg = SettingsDialog(self.config, self)
+        if dlg.exec():
+            dlg.apply()
+            for tab in self.note_tabs():
+                tab.canvas.set_curve(self.config.pressure_curve)
+            self.tools.changed.emit()
+            self.toolbar.sync()
+            self._vault_changed()
+
+    def _remember(self, path: Path):
+        p = str(Path(path).resolve())
+        self.config.recent_files = ([p] + [r for r in self.config.recent_files if r != p])[:10]
+        self.config.save()
+
+    def path_moved(self, old: Path, new: Path):
+        """Fichier ou dossier renommé/déplacé : les onglets suivent."""
+        old, new = Path(old).resolve(), Path(new).resolve()
+        for tab in self.note_tabs():
+            p = tab.ctl.path.resolve()
+            if p == old or old in p.parents:
+                tab.ctl.rename_to(new / p.relative_to(old) if p != old else new)
+        self.config.recent_files = [str(new / Path(r).relative_to(old)) if Path(r) == old or old in Path(r).parents
+                                    else r for r in self.config.recent_files]
+        self._refresh_tab_titles()
+
+    def path_deleted(self, path: Path):
+        """Mis à la corbeille : on ferme les onglets concernés sans les réenregistrer."""
+        path = Path(path).resolve()
+        for tab in self.note_tabs():
+            p = tab.ctl.path.resolve()
+            if p == path or path in p.parents:
+                tab.ctl._timer.stop()
+                self.tabs.removeTab(self.tabs.indexOf(tab))
+                tab.deleteLater()
+        if not self.note_tabs() and self.tabs.indexOf(self.empty) < 0:
+            self.tabs.addTab(self.empty, "Accueil")
+            self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
 
     # ----- notes -----
     def new_note(self, folder: Path | None = None) -> None:
@@ -297,6 +371,10 @@ class MainWindow(QMainWindow):
             self.open_file(Path(path))
 
     def open_file(self, path: Path) -> None:
+        path = Path(path)
+        if path.suffix.lower() == ".pdf":  # « Ouvrir avec Plume » sur un PDF : on l'annote
+            self.import_pdf(path)
+            return
         for i in range(self.tabs.count()):
             w = self.tabs.widget(i)
             if isinstance(w, NoteTab) and w.ctl.path.resolve() == path.resolve():
@@ -315,6 +393,7 @@ class MainWindow(QMainWindow):
         ctl.after_save.append(self._export_companion)
         tab = NoteTab(ctl, self.tools, self.debug_perf)
         tab.titleChanged.connect(self._refresh_tab_titles)
+        self._remember(ctl.path)
         tab.canvas.changed.connect(self._sync_undo)
         if self.tabs.indexOf(self.empty) >= 0:
             self.tabs.removeTab(self.tabs.indexOf(self.empty))
@@ -339,6 +418,7 @@ class MainWindow(QMainWindow):
         self.tabs.removeTab(index)
         w.deleteLater()
         if not self.note_tabs():
+            self.empty.refresh()
             self.tabs.addTab(self.empty, "Accueil")
             self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
 

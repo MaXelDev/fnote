@@ -169,3 +169,13 @@ def test_ruler_body_drag_moves_ruler():
     c._active.move(QPointF(g.cx - 60, g.cy), .5, 1)
     c._finish(QPointF(g.cx - 60, g.cy), .5, 2)
     assert abs(g.cx - (x0 + 40)) < 1e-6 and all(not p.ink for p in c.doc.pages)
+
+
+def test_stroke_ends_exactly_at_pen_lift():
+    c = make()
+    pen = InkTool(c, {"tool": "ballpoint", "color": "#000000ff", "width": 1.0})
+    r = c.page_rect(0)
+    draw(c, pen, [(r.x() + 100, r.y() + 100), (r.x() + 400, r.y() + 100)])  # deux échantillons seulement
+    s = c.doc.pages[0].ink[0]
+    end = c.page_to_view(0, s.points[-1][0], s.points[-1][1])
+    assert abs(end.x() - (r.x() + 400)) < 0.5

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Plume
+GenericName=Notes manuscrites
+Comment=Prendre des notes et annoter des PDF au stylet, 100 % hors ligne
+Exec=@EXEC@ %f
+Icon=plume
+Terminal=false
+Categories=Office;
+Keywords=notes;stylet;manuscrit;PDF;annoter;surligneur;Obsidian;
+MimeType=application/x-plume;application/pdf;
+StartupWMClass=plume
+StartupNotify=true

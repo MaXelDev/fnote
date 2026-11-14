@@ -46,6 +46,7 @@ class Config:
     shape_recognition: bool = True
     companion_pdf: bool = True
     autosave_delay_ms: int = 3000
+    recent_files: list[str] = field(default_factory=list)
     config_version: int = CONFIG_VERSION
 
     @classmethod

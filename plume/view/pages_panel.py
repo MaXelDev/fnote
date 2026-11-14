@@ -81,7 +81,9 @@ class PagesPanel(QWidget):
         if icon is None:
             scale = THUMB_W / page.width
             img = self.canvas.renderer.render_page(page, scale, self.devicePixelRatioF())
-            icon = QIcon(QPixmap.fromImage(img))
+            pm = QPixmap.fromImage(img)
+            icon = QIcon(pm)
+            icon.addPixmap(pm, QIcon.Mode.Selected)  # pas de teinte bleue sur la page sélectionnée
             self._thumbs[page.id] = icon
         return icon
 

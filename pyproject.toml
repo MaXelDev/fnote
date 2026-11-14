@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "plume"
-version = "0.0.1"
+version = "1.0.0"
 description = "Prise de notes manuscrites au stylet pour Fedora/Wayland, 100 % locale"
 readme = "README.md"
 license = "MIT"
@@ -25,7 +25,7 @@ plume = "plume.app:main"
 include = ["plume*"]
 
 [tool.setuptools.package-data]
-plume = ["resources/*.json", "resources/icons/*.svg"]
+plume = ["resources/*.json", "resources/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
