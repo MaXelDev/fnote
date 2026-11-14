@@ -16,3 +16,4 @@ config.json
 *.pdf
 !tests/fixtures/*.pdf
 *.blob
+graphify-out/
