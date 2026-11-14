@@ -369,6 +369,10 @@ class MainWindow(QMainWindow):
             self.open_file(Path(path))
 
     def open_file(self, path: Path) -> None:
+        path = Path(path)
+        if path.suffix.lower() == ".pdf":  # « Ouvrir avec Plume » sur un PDF : on l'annote
+            self.import_pdf(path)
+            return
         for i in range(self.tabs.count()):
             w = self.tabs.widget(i)
             if isinstance(w, NoteTab) and w.ctl.path.resolve() == path.resolve():
