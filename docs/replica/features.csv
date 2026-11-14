@@ -1,39 +1,39 @@
 feature,area,priority,original,clone,notes
-Écriture au stylet avec pression (épaisseur variable),encre,must,yes,no,phase 1 — critère n°1
-Tracé incrémental sans retard visible (latence minimale),encre,must,yes,no,phase 1 — critère n°1 ; cache bitmap par page
-Lissage du trait sans retard (finalisé au lever),encre,must,yes,no,phase 1
-Courbe de pression réglable,encre,must,partial,no,phase 1 ; Samsung n'expose qu'un réglage de sensibilité
-Curseur caché quand le stylet est en proximité,stylet,must,yes,no,phase 1 — critère n°1
-Point discret de survol sous la pointe,stylet,should,yes,no,phase 1 ; option
-Rejet de la paume (tactile ignoré si stylet proche),stylet,must,yes,no,phase 1
-Un doigt = défiler / deux doigts = zoom,navigation,must,yes,no,phase 1
-Le doigt ne dessine pas (option pour l'activer),stylet,must,yes,no,phase 1
-Bouton latéral maintenu = gomme temporaire (ou lasso),stylet,must,yes,no,phase 2 ; configurable
-Souris dessine / molette défile / Ctrl+molette zoome,navigation,must,partial,no,phase 1
+Écriture au stylet avec pression (épaisseur variable),encre,must,yes,yes,phase 1 — critère n°1
+Tracé incrémental sans retard visible (latence minimale),encre,must,yes,yes,phase 1 — critère n°1 ; cache bitmap par page
+Lissage du trait sans retard (finalisé au lever),encre,must,yes,yes,phase 1
+Courbe de pression réglable,encre,must,partial,partial,phase 1 ; Samsung n'expose qu'un réglage de sensibilité
+Curseur caché quand le stylet est en proximité,stylet,must,yes,yes,phase 1 — critère n°1
+Point discret de survol sous la pointe,stylet,should,yes,yes,phase 1 ; option
+Rejet de la paume (tactile ignoré si stylet proche),stylet,must,yes,yes,phase 1
+Un doigt = défiler / deux doigts = zoom,navigation,must,yes,yes,phase 1
+Le doigt ne dessine pas (option pour l'activer),stylet,must,yes,yes,phase 1
+Bouton latéral maintenu = gomme temporaire (ou lasso),stylet,must,yes,partial,phase 2 ; configurable
+Souris dessine / molette défile / Ctrl+molette zoome,navigation,must,partial,yes,phase 1
 Fenêtre de diagnostic --debug-tablet,stylet,must,no,yes,phase 0 ; spécifique Plume
-Mode --debug-perf (fps et temps de rendu),encre,should,no,no,phase 1 ; spécifique Plume
-Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons),édition,must,yes,no,phase 1
-Sauvegarde automatique après inactivité,fichiers,must,yes,no,phase 1
+Mode --debug-perf (fps et temps de rendu),encre,should,no,yes,phase 1 ; spécifique Plume
+Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons),édition,must,yes,partial,phase 1
+Sauvegarde automatique après inactivité,fichiers,must,yes,yes,phase 1
 Sauvegarde atomique (aucune perte sur crash),fichiers,must,partial,yes,phase 0
 Format .plume (ZIP + document.json versionné + assets),fichiers,must,no,yes,phase 0 ; Samsung utilise .sdocx
-Défilement vertical continu multi-pages A4,pages,must,yes,no,phase 1
-Ajout automatique de page en bas,pages,must,yes,no,phase 1
-Rendu des seules pages visibles,encre,must,yes,no,phase 1 ; 60 fps sur 30 pages
-Zoom fluide (aperçu mis à l'échelle puis net),navigation,must,yes,no,phase 1
-Ajuster à la largeur,navigation,should,yes,no,phase 2
+Défilement vertical continu multi-pages A4,pages,must,yes,yes,phase 1
+Ajout automatique de page en bas,pages,must,yes,yes,phase 1
+Rendu des seules pages visibles,encre,must,yes,yes,phase 1 ; 60 fps sur 30 pages
+Zoom fluide (aperçu mis à l'échelle puis net),navigation,must,yes,yes,phase 1
+Ajuster à la largeur,navigation,should,yes,yes,phase 2
 Types de pointe : plume / bille / crayon,stylo,should,yes,no,phase 2 ; Samsung en propose plus (pinceau calligraphie…)
 3 à 5 stylos favoris (outil+couleur+épaisseur),stylo,must,yes,no,phase 2
 Palette prédéfinie ≥ 16 couleurs,couleurs,must,yes,no,phase 2
 Sélecteur avancé HSV + RGB + HEX + opacité,couleurs,must,yes,no,phase 2
 Couleurs récentes + ajout à la palette,couleurs,should,yes,no,phase 2
-Surligneur translucide en multiply sous l'encre,surligneur,must,yes,no,phase 2
-Surligneur sans accumulation d'opacité dans un trait,surligneur,must,yes,no,phase 2
-Surligneur droit (redressement horizontal),surligneur,must,yes,no,phase 2
+Surligneur translucide en multiply sous l'encre,surligneur,must,yes,yes,phase 2
+Surligneur sans accumulation d'opacité dans un trait,surligneur,must,yes,yes,phase 2
+Surligneur droit (redressement horizontal),surligneur,must,yes,partial,phase 2
 Couleurs de surligneur prédéfinies + libre,surligneur,must,yes,no,phase 2
-Gomme trait entier,gomme,must,yes,no,phase 2
-Gomme partielle (coupe le trait),gomme,must,yes,no,phase 2
+Gomme trait entier,gomme,must,yes,yes,phase 2
+Gomme partielle (coupe le trait),gomme,must,yes,yes,phase 2
 Taille de gomme réglable,gomme,should,yes,no,phase 2
-Gomme « surligneur seulement »,gomme,should,yes,no,phase 2
+Gomme « surligneur seulement »,gomme,should,yes,partial,phase 2
 Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé,pages,must,yes,no,phase 2
 Fond par défaut dans les paramètres,pages,should,yes,no,phase 2
 Réorganiser / supprimer des pages + miniatures,pages,must,yes,no,phase 2
@@ -76,10 +76,10 @@ Enregistrement audio synchronisé,hors périmètre,skip,yes,skip,7.12
 Assistant IA (résumé / correction / mise en forme),hors périmètre,skip,yes,skip,service distant ; non demandé
 Notes partagées / collaboration,hors périmètre,skip,yes,skip,réseau
 Compatibilité Windows / macOS,hors périmètre,skip,yes,skip,7.12
-Zoom : cache mis à l'échelle pendant le geste puis rendu net,navigation,must,no,no,phase 1 ; fix #1 (Rnote #7)
-Souris ignorée quand le stylet est proche (pas de saut de trait),stylet,must,no,no,phase 1 ; fix #2 (Rnote #1440)
-Coordonnées exactes à 125/150/200 % d'échelle Wayland,stylet,must,no,no,phase 1 ; fix #3 (Rnote #338)
-Gomme par intersection de segments (aucun trait sauté),gomme,must,no,no,phase 2 ; fix #4 (Rnote #1247)
-Surligneur rendu en un seul chemin (opacité uniforme),surligneur,must,no,no,phase 2 ; fix #5 (Rnote #106 #891)
+Zoom : cache mis à l'échelle pendant le geste puis rendu net,navigation,must,no,yes,phase 1 ; fix #1 (Rnote #7)
+Souris ignorée quand le stylet est proche (pas de saut de trait),stylet,must,no,yes,phase 1 ; fix #2 (Rnote #1440)
+Coordonnées exactes à 125/150/200 % d'échelle Wayland,stylet,must,no,yes,phase 1 ; fix #3 (Rnote #338)
+Gomme par intersection de segments (aucun trait sauté),gomme,must,no,yes,phase 2 ; fix #4 (Rnote #1247)
+Surligneur rendu en un seul chemin (opacité uniforme),surligneur,must,no,yes,phase 2 ; fix #5 (Rnote #106 #891)
 Une seule barre d'outils + réglages en popover,interface,must,no,no,phase 2 ; fix #6 (HN)
 --debug-tablet affiche l'échelle et le décalage stylet/pointeur,stylet,should,no,yes,phase 0 ; fix #7 (Rnote #1543)

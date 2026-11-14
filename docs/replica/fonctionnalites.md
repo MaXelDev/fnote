@@ -18,52 +18,52 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Écriture au stylet avec pression (épaisseur variable) | encre | must | yes | no | critère n°1 |
-| Tracé incrémental sans retard visible (latence minimale) | encre | must | yes | no | critère n°1 ; cache bitmap par page |
-| Lissage du trait sans retard (finalisé au lever) | encre | must | yes | no |  |
-| Courbe de pression réglable | encre | must | partial | no | Samsung n'expose qu'un réglage de sensibilité |
-| Curseur caché quand le stylet est en proximité | stylet | must | yes | no | critère n°1 |
-| Point discret de survol sous la pointe | stylet | should | yes | no | option |
-| Rejet de la paume (tactile ignoré si stylet proche) | stylet | must | yes | no |  |
-| Un doigt = défiler / deux doigts = zoom | navigation | must | yes | no |  |
-| Le doigt ne dessine pas (option pour l'activer) | stylet | must | yes | no |  |
-| Souris dessine / molette défile / Ctrl+molette zoome | navigation | must | partial | no |  |
-| Mode --debug-perf (fps et temps de rendu) | encre | should | no | no | spécifique Plume |
-| Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons) | édition | must | yes | no |  |
-| Sauvegarde automatique après inactivité | fichiers | must | yes | no |  |
-| Défilement vertical continu multi-pages A4 | pages | must | yes | no |  |
-| Ajout automatique de page en bas | pages | must | yes | no |  |
-| Rendu des seules pages visibles | encre | must | yes | no | 60 fps sur 30 pages |
-| Zoom fluide (aperçu mis à l'échelle puis net) | navigation | must | yes | no |  |
-| Zoom : cache mis à l'échelle pendant le geste puis rendu net | navigation | must | no | no | fix #1 (Rnote #7) |
-| Souris ignorée quand le stylet est proche (pas de saut de trait) | stylet | must | no | no | fix #2 (Rnote #1440) |
-| Coordonnées exactes à 125/150/200 % d'échelle Wayland | stylet | must | no | no | fix #3 (Rnote #338) |
+| Écriture au stylet avec pression (épaisseur variable) | encre | must | yes | yes | critère n°1 |
+| Tracé incrémental sans retard visible (latence minimale) | encre | must | yes | yes | critère n°1 ; cache bitmap par page |
+| Lissage du trait sans retard (finalisé au lever) | encre | must | yes | yes |  |
+| Courbe de pression réglable | encre | must | partial | partial | Samsung n'expose qu'un réglage de sensibilité |
+| Curseur caché quand le stylet est en proximité | stylet | must | yes | yes | critère n°1 |
+| Point discret de survol sous la pointe | stylet | should | yes | yes | option |
+| Rejet de la paume (tactile ignoré si stylet proche) | stylet | must | yes | yes |  |
+| Un doigt = défiler / deux doigts = zoom | navigation | must | yes | yes |  |
+| Le doigt ne dessine pas (option pour l'activer) | stylet | must | yes | yes |  |
+| Souris dessine / molette défile / Ctrl+molette zoome | navigation | must | partial | yes |  |
+| Mode --debug-perf (fps et temps de rendu) | encre | should | no | yes | spécifique Plume |
+| Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons) | édition | must | yes | partial |  |
+| Sauvegarde automatique après inactivité | fichiers | must | yes | yes |  |
+| Défilement vertical continu multi-pages A4 | pages | must | yes | yes |  |
+| Ajout automatique de page en bas | pages | must | yes | yes |  |
+| Rendu des seules pages visibles | encre | must | yes | yes | 60 fps sur 30 pages |
+| Zoom fluide (aperçu mis à l'échelle puis net) | navigation | must | yes | yes |  |
+| Zoom : cache mis à l'échelle pendant le geste puis rendu net | navigation | must | no | yes | fix #1 (Rnote #7) |
+| Souris ignorée quand le stylet est proche (pas de saut de trait) | stylet | must | no | yes | fix #2 (Rnote #1440) |
+| Coordonnées exactes à 125/150/200 % d'échelle Wayland | stylet | must | no | yes | fix #3 (Rnote #338) |
 
 ## Phase 2 — Outils de base
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Bouton latéral maintenu = gomme temporaire (ou lasso) | stylet | must | yes | no | configurable |
-| Ajuster à la largeur | navigation | should | yes | no |  |
+| Bouton latéral maintenu = gomme temporaire (ou lasso) | stylet | must | yes | partial | configurable |
+| Ajuster à la largeur | navigation | should | yes | yes |  |
 | Types de pointe : plume / bille / crayon | stylo | should | yes | no | Samsung en propose plus (pinceau calligraphie…) |
 | 3 à 5 stylos favoris (outil+couleur+épaisseur) | stylo | must | yes | no |  |
 | Palette prédéfinie ≥ 16 couleurs | couleurs | must | yes | no |  |
 | Sélecteur avancé HSV + RGB + HEX + opacité | couleurs | must | yes | no |  |
 | Couleurs récentes + ajout à la palette | couleurs | should | yes | no |  |
-| Surligneur translucide en multiply sous l'encre | surligneur | must | yes | no |  |
-| Surligneur sans accumulation d'opacité dans un trait | surligneur | must | yes | no |  |
-| Surligneur droit (redressement horizontal) | surligneur | must | yes | no |  |
+| Surligneur translucide en multiply sous l'encre | surligneur | must | yes | yes |  |
+| Surligneur sans accumulation d'opacité dans un trait | surligneur | must | yes | yes |  |
+| Surligneur droit (redressement horizontal) | surligneur | must | yes | partial |  |
 | Couleurs de surligneur prédéfinies + libre | surligneur | must | yes | no |  |
-| Gomme trait entier | gomme | must | yes | no |  |
-| Gomme partielle (coupe le trait) | gomme | must | yes | no |  |
+| Gomme trait entier | gomme | must | yes | yes |  |
+| Gomme partielle (coupe le trait) | gomme | must | yes | yes |  |
 | Taille de gomme réglable | gomme | should | yes | no |  |
-| Gomme « surligneur seulement » | gomme | should | yes | no |  |
+| Gomme « surligneur seulement » | gomme | should | yes | partial |  |
 | Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé | pages | must | yes | no |  |
 | Fond par défaut dans les paramètres | pages | should | yes | no |  |
 | Réorganiser / supprimer des pages + miniatures | pages | must | yes | no |  |
 | Barre d'outils compacte à gros boutons pour stylet | interface | must | yes | no |  |
-| Gomme par intersection de segments (aucun trait sauté) | gomme | must | no | no | fix #4 (Rnote #1247) |
-| Surligneur rendu en un seul chemin (opacité uniforme) | surligneur | must | no | no | fix #5 (Rnote #106 #891) |
+| Gomme par intersection de segments (aucun trait sauté) | gomme | must | no | yes | fix #4 (Rnote #1247) |
+| Surligneur rendu en un seul chemin (opacité uniforme) | surligneur | must | no | yes | fix #5 (Rnote #106 #891) |
 | Une seule barre d'outils + réglages en popover | interface | must | no | no | fix #6 (HN) |
 
 ## Phase 3 — Lasso et images
