@@ -186,22 +186,23 @@ class PageRenderer:
         else:
             self.paint_image(p, e)
 
-    def paint_page(self, p: QPainter, page: Page, scale: float, background: bool = True) -> None:
+    def paint_page(self, p: QPainter, page: Page, scale: float, background: bool = True, exclude=()) -> None:
         """Peint la page entière ; le painter doit déjà être en coordonnées de page."""
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         if background:
             self.paint_background(p, page, scale)
         for e in page.elements():
-            self.paint_element(p, e)
+            if e.id not in exclude:
+                self.paint_element(p, e)
 
-    def render_page(self, page: Page, scale: float, dpr: float = 1.0) -> QImage:
+    def render_page(self, page: Page, scale: float, dpr: float = 1.0, exclude=()) -> QImage:
         """Image de la page à `scale` pixels logiques par point (cache du canevas)."""
         w, h = max(1, round(page.width * scale * dpr)), max(1, round(page.height * scale * dpr))
         img = QImage(w, h, QImage.Format.Format_ARGB32_Premultiplied)
         img.setDevicePixelRatio(dpr)
         p = QPainter(img)
         p.scale(scale, scale)
-        self.paint_page(p, page, scale)
+        self.paint_page(p, page, scale, exclude=exclude)
         p.end()
         return img

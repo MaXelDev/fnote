@@ -57,6 +57,7 @@ class Canvas(QAbstractScrollArea):
         self._touch: dict | None = None
         self._current_page = 0
         self.overlays = []              # objets avec paint(painter) : règle, sélection…
+        self.hidden_ids: set[str] = set()  # éléments masqués (sélection en cours de déplacement)
         self.debug_perf = debug_perf
         self._frames: list[float] = []
         self._last_paint_ms = 0.0
@@ -201,7 +202,7 @@ class Canvas(QAbstractScrollArea):
         page = self.doc.pages[i]
         entry = self._cache.get(page.id)
         if entry is None:
-            img = self.renderer.render_page(page, self.zoom, self._dpr())
+            img = self.renderer.render_page(page, self.zoom, self._dpr(), self.hidden_ids)
             self._cache[page.id] = (self.zoom, img)
             return img
         if abs(entry[0] - self.zoom) > 1e-4:
@@ -215,7 +216,7 @@ class Canvas(QAbstractScrollArea):
             page = self.doc.pages[i]
             entry = self._cache.get(page.id)
             if entry is None or abs(entry[0] - self.zoom) > 1e-4:
-                self._cache[page.id] = (self.zoom, self.renderer.render_page(page, self.zoom, self._dpr()))
+                self._cache[page.id] = (self.zoom, self.renderer.render_page(page, self.zoom, self._dpr(), self.hidden_ids))
                 self.viewport().update(self.page_rect(i).toAlignedRect())
                 self._sharp_timer.start(0)
                 return
