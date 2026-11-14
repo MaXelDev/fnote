@@ -68,6 +68,7 @@ class Canvas(QAbstractScrollArea):
         vp.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
         vp.setMouseTracking(True)
         vp.setTabletTracking(True)
+        router().proximityChanged.connect(self._on_proximity)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAcceptDrops(True)
         self.setFrameShape(QAbstractScrollArea.Shape.NoFrame)
@@ -413,23 +414,43 @@ class Canvas(QAbstractScrollArea):
         e.accept()  # pas d'événement souris synthétisé
         pos, pressure, t = e.position(), e.pressure(), float(e.timestamp())
         t_ = e.type()
-        if t_ == QEvent.Type.TabletPress:
-            secondary = (e.pointingDevice().pointerType() == _ERASER_POINTER
-                         or bool(e.buttons() & ~Qt.MouseButton.LeftButton))
+        # Bouton latéral maintenu (ou bout gomme) : la gomme est « armée », comme le stylo en survol.
+        side = self.side_tool is not None and (e.pointingDevice().pointerType() == _ERASER_POINTER
+                                               or bool(e.buttons() & ~Qt.MouseButton.LeftButton))
+        tip = e.button() == Qt.MouseButton.LeftButton
+        if t_ == QEvent.Type.TabletPress and tip and self._active is None:
             self._set_hover(None)
-            self._start(self.side_tool if secondary and self.side_tool else self.tool, pos, pressure, t)
-        elif t_ == QEvent.Type.TabletMove:
-            if self._active is not None:
-                self._active.move(pos, pressure, t)
-            else:
-                self._set_hover(pos)
-                if self.tool is not None:
-                    self.tool.hover(pos)
-        elif t_ == QEvent.Type.TabletRelease and self._active is not None:
+            self._start(self.side_tool if side else self.tool, pos, pressure, t)
+        elif t_ == QEvent.Type.TabletMove and self._active is not None:
+            self._active.move(pos, pressure, t)
+        elif t_ == QEvent.Type.TabletMove and e.buttons() & Qt.MouseButton.LeftButton and pressure > 0:
+            self._set_hover(None)  # contact sans TabletPress (certains pilotes) : on démarre ici
+            self._start(self.side_tool if side else self.tool, pos, pressure, t)
+        elif t_ == QEvent.Type.TabletRelease and tip and self._active is not None:
             self._finish(pos, pressure, t)
+        if self._active is None:  # survol : seulement montrer l'outil, jamais modifier la note
+            self._show_hover(pos, side)
+
+    def _on_proximity(self, near: bool):
+        if not near:
+            self._show_hover(None)
+
+    def _show_hover(self, pos: QPointF | None, side: bool = False):
+        """Point discret du stylo, ou cercle de la gomme quand le bouton est maintenu."""
+        if side:
+            self._set_hover(None)
+            if self.tool is not None and self.tool is not self.side_tool:
+                self.tool.hover(None)
+            self.side_tool.hover(pos)
+        else:
+            if self.side_tool is not None and self.side_tool is not self.tool:
+                self.side_tool.hover(None)
+            self._set_hover(pos)
+            if self.tool is not None:
+                self.tool.hover(pos)
 
     def leaveEvent(self, e):
-        self._set_hover(None)
+        self._show_hover(None)
         super().leaveEvent(e)
 
     def mousePressEvent(self, e):

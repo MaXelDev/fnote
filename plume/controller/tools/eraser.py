@@ -109,7 +109,7 @@ class EraserTool(Tool):
 
     def hover(self, pos):
         old = self._pos
-        self._pos = QPointF(pos)
+        self._pos = None if pos is None else QPointF(pos)
         r = self.spec["size"] / 2 * self.canvas.zoom + 3
         for p in filter(None, (old, self._pos)):
             self.canvas.viewport().update(int(p.x() - r), int(p.y() - r), int(2 * r) + 1, int(2 * r) + 1)
