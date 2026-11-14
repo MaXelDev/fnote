@@ -21,7 +21,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Écriture au stylet avec pression (épaisseur variable) | encre | must | yes | yes | critère n°1 |
 | Tracé incrémental sans retard visible (latence minimale) | encre | must | yes | yes | critère n°1 ; cache bitmap par page |
 | Lissage du trait sans retard (finalisé au lever) | encre | must | yes | yes |  |
-| Courbe de pression réglable | encre | must | partial | partial | Samsung n'expose qu'un réglage de sensibilité |
+| Courbe de pression réglable | encre | must | partial | yes | Samsung n'expose qu'un réglage de sensibilité |
 | Curseur caché quand le stylet est en proximité | stylet | must | yes | yes | critère n°1 |
 | Point discret de survol sous la pointe | stylet | should | yes | yes | option |
 | Rejet de la paume (tactile ignoré si stylet proche) | stylet | must | yes | yes |  |
@@ -59,7 +59,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Taille de gomme réglable | gomme | should | yes | yes |  |
 | Gomme « surligneur seulement » | gomme | should | yes | yes |  |
 | Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé | pages | must | yes | yes |  |
-| Fond par défaut dans les paramètres | pages | should | yes | partial |  |
+| Fond par défaut dans les paramètres | pages | should | yes | yes |  |
 | Réorganiser / supprimer des pages + miniatures | pages | must | yes | yes |  |
 | Barre d'outils compacte à gros boutons pour stylet | interface | must | yes | yes |  |
 | Gomme par intersection de segments (aucun trait sauté) | gomme | must | no | yes | fix #4 (Rnote #1247) |
@@ -108,13 +108,13 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Panneau arborescence du vault (.plume + .pdf) | notes | must | partial | no | Samsung a des dossiers internes |
-| Créer / renommer / déplacer des notes et dossiers | notes | must | yes | no |  |
-| Supprimer vers la corbeille système | notes | must | yes | no |  |
-| Plusieurs notes en onglets | notes | should | no | no |  |
-| Plein écran F11 | interface | should | yes | partial |  |
-| Thème clair/sombre suivant le système | interface | should | yes | partial | fonds de page restent blancs |
-| Raccourcis clavier des outils | interface | should | yes | no |  |
+| Panneau arborescence du vault (.plume + .pdf) | notes | must | partial | yes | Samsung a des dossiers internes |
+| Créer / renommer / déplacer des notes et dossiers | notes | must | yes | yes |  |
+| Supprimer vers la corbeille système | notes | must | yes | yes |  |
+| Plusieurs notes en onglets | notes | should | no | yes |  |
+| Plein écran F11 | interface | should | yes | yes |  |
+| Thème clair/sombre suivant le système | interface | should | yes | yes | fonds de page restent blancs |
+| Raccourcis clavier des outils | interface | should | yes | yes |  |
 
 ## Hors périmètre (skip)
 

@@ -2,7 +2,7 @@ feature,area,priority,original,clone,notes
 Écriture au stylet avec pression (épaisseur variable),encre,must,yes,yes,phase 1 — critère n°1
 Tracé incrémental sans retard visible (latence minimale),encre,must,yes,yes,phase 1 — critère n°1 ; cache bitmap par page
 Lissage du trait sans retard (finalisé au lever),encre,must,yes,yes,phase 1
-Courbe de pression réglable,encre,must,partial,partial,phase 1 ; Samsung n'expose qu'un réglage de sensibilité
+Courbe de pression réglable,encre,must,partial,yes,phase 1 ; Samsung n'expose qu'un réglage de sensibilité
 Curseur caché quand le stylet est en proximité,stylet,must,yes,yes,phase 1 — critère n°1
 Point discret de survol sous la pointe,stylet,should,yes,yes,phase 1 ; option
 Rejet de la paume (tactile ignoré si stylet proche),stylet,must,yes,yes,phase 1
@@ -35,7 +35,7 @@ Gomme partielle (coupe le trait),gomme,must,yes,yes,phase 2
 Taille de gomme réglable,gomme,should,yes,yes,phase 2
 Gomme « surligneur seulement »,gomme,should,yes,yes,phase 2
 Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé,pages,must,yes,yes,phase 2
-Fond par défaut dans les paramètres,pages,should,yes,partial,phase 2
+Fond par défaut dans les paramètres,pages,should,yes,yes,phase 2
 Réorganiser / supprimer des pages + miniatures,pages,must,yes,yes,phase 2
 Lasso libre (traits surlignages formes images),lasso,must,yes,yes,phase 3
 Lasso : déplacer,lasso,must,yes,yes,phase 3
@@ -60,14 +60,14 @@ Insérer des pages vierges entre pages PDF,pdf,must,yes,yes,phase 5
 Export PDF vectoriel (texte d'origine sélectionnable),pdf,must,partial,yes,phase 5 ; Samsung aplatit parfois
 Export PDF d'une note sans PDF source,pdf,must,yes,yes,phase 5
 Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,yes,phase 5 ; spécifique Plume
-Panneau arborescence du vault (.plume + .pdf),notes,must,partial,no,phase 6 ; Samsung a des dossiers internes
-Créer / renommer / déplacer des notes et dossiers,notes,must,yes,no,phase 6
-Supprimer vers la corbeille système,notes,must,yes,no,phase 6
-Plusieurs notes en onglets,notes,should,no,no,phase 6
+Panneau arborescence du vault (.plume + .pdf),notes,must,partial,yes,phase 6 ; Samsung a des dossiers internes
+Créer / renommer / déplacer des notes et dossiers,notes,must,yes,yes,phase 6
+Supprimer vers la corbeille système,notes,must,yes,yes,phase 6
+Plusieurs notes en onglets,notes,should,no,yes,phase 6
 Paramètres dans ~/.config/plume/config.json,paramètres,must,no,yes,phase 0
-Plein écran F11,interface,should,yes,partial,phase 6
-Thème clair/sombre suivant le système,interface,should,yes,partial,phase 6 ; fonds de page restent blancs
-Raccourcis clavier des outils,interface,should,yes,no,phase 6
+Plein écran F11,interface,should,yes,yes,phase 6
+Thème clair/sombre suivant le système,interface,should,yes,yes,phase 6 ; fonds de page restent blancs
+Raccourcis clavier des outils,interface,should,yes,yes,phase 6
 Barre d'outils compacte à gros boutons pour stylet,interface,must,yes,yes,phase 2
 Synchronisation / cloud / compte Samsung,hors périmètre,skip,yes,skip,7.12 — 100 % local
 Recherche dans l'écriture manuscrite (OCR),hors périmètre,skip,yes,skip,7.12
