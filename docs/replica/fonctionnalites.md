@@ -70,16 +70,16 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Lasso libre (traits surlignages formes images) | lasso | must | yes | no |  |
-| Lasso : déplacer | lasso | must | yes | no |  |
-| Lasso : redimensionner (poignées + proportions) | lasso | must | yes | no |  |
-| Lasso : pivoter | lasso | should | yes | no |  |
-| Lasso : changer couleur / épaisseur | lasso | should | yes | no |  |
-| Lasso : copier / couper / coller / dupliquer / supprimer | lasso | must | yes | no |  |
-| Images : insertion depuis fichier | images | must | yes | no |  |
-| Images : glisser-déposer | images | should | yes | no |  |
-| Images : coller depuis le presse-papiers | images | must | yes | no | captures d'écran |
-| Images : recadrage simple | images | should | yes | no |  |
+| Lasso libre (traits surlignages formes images) | lasso | must | yes | yes |  |
+| Lasso : déplacer | lasso | must | yes | yes |  |
+| Lasso : redimensionner (poignées + proportions) | lasso | must | yes | yes |  |
+| Lasso : pivoter | lasso | should | yes | yes |  |
+| Lasso : changer couleur / épaisseur | lasso | should | yes | yes |  |
+| Lasso : copier / couper / coller / dupliquer / supprimer | lasso | must | yes | yes |  |
+| Images : insertion depuis fichier | images | must | yes | yes |  |
+| Images : glisser-déposer | images | should | yes | yes |  |
+| Images : coller depuis le presse-papiers | images | must | yes | yes | captures d'écran |
+| Images : recadrage simple | images | should | yes | yes |  |
 
 ## Phase 4 — Formes et règle
 

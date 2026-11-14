@@ -57,6 +57,7 @@ class Canvas(QAbstractScrollArea):
         self._touch: dict | None = None
         self._current_page = 0
         self.overlays = []              # objets avec paint(painter) : règle, sélection…
+        self.hidden_ids: set[str] = set()  # éléments masqués (sélection en cours de déplacement)
         self.debug_perf = debug_perf
         self._frames: list[float] = []
         self._last_paint_ms = 0.0
@@ -67,6 +68,7 @@ class Canvas(QAbstractScrollArea):
         vp.setMouseTracking(True)
         vp.setTabletTracking(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setAcceptDrops(True)
         self.setFrameShape(QAbstractScrollArea.Shape.NoFrame)
         self.verticalScrollBar().setSingleStep(40)
         self.horizontalScrollBar().setSingleStep(40)
@@ -201,7 +203,7 @@ class Canvas(QAbstractScrollArea):
         page = self.doc.pages[i]
         entry = self._cache.get(page.id)
         if entry is None:
-            img = self.renderer.render_page(page, self.zoom, self._dpr())
+            img = self.renderer.render_page(page, self.zoom, self._dpr(), self.hidden_ids)
             self._cache[page.id] = (self.zoom, img)
             return img
         if abs(entry[0] - self.zoom) > 1e-4:
@@ -215,7 +217,7 @@ class Canvas(QAbstractScrollArea):
             page = self.doc.pages[i]
             entry = self._cache.get(page.id)
             if entry is None or abs(entry[0] - self.zoom) > 1e-4:
-                self._cache[page.id] = (self.zoom, self.renderer.render_page(page, self.zoom, self._dpr()))
+                self._cache[page.id] = (self.zoom, self.renderer.render_page(page, self.zoom, self._dpr(), self.hidden_ids))
                 self.viewport().update(self.page_rect(i).toAlignedRect())
                 self._sharp_timer.start(0)
                 return
@@ -303,19 +305,28 @@ class Canvas(QAbstractScrollArea):
             self._relayout()
         self.changed.emit()
 
+    def _drop_selection(self):
+        for t in (self.tool, self.side_tool):
+            if t is not None and hasattr(t, "clear"):
+                t.clear()
+
     def undo(self):
         self._cancel_gesture()
+        self._drop_selection()
         n = len(self.doc.pages)
         self._after_change(self.history.undo(), n)
 
     def redo(self):
         self._cancel_gesture()
+        self._drop_selection()
         n = len(self.doc.pages)
         self._after_change(self.history.redo(), n)
 
     # ================= outils =================
     def set_tool(self, tool):
         self._cancel_gesture()
+        if self.tool is not None and self.tool is not tool:
+            self.tool.dispose()
         self.tool = tool
         self.viewport().update()
 
@@ -493,6 +504,32 @@ class Canvas(QAbstractScrollArea):
         d = center - self._touch["center"]
         self._scroll_by(-d.x(), -d.y())
         self._touch.update(center=center, dist=dist, last=center)
+
+    # ----- glisser-déposer d'images -----
+    @staticmethod
+    def _dropped_image(mime):
+        from ..controller import images
+        if mime.hasImage():
+            return QImage(mime.imageData())
+        for url in mime.urls():
+            if url.isLocalFile() and url.toLocalFile().lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif")):
+                return images.load_file(url.toLocalFile())
+        return None
+
+    def dragEnterEvent(self, e):
+        m = e.mimeData()
+        if m.hasImage() or any(u.isLocalFile() for u in m.urls()):
+            e.acceptProposedAction()
+
+    def dragMoveEvent(self, e):
+        e.acceptProposedAction()
+
+    def dropEvent(self, e):
+        from ..controller import images
+        img = self._dropped_image(e.mimeData())
+        if img is not None and not img.isNull():
+            images.add_image(self, img, e.position())
+            e.acceptProposedAction()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_Escape and self._active is not None:

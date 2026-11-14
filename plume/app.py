@@ -47,6 +47,8 @@ def main(argv=None) -> int:
     from .controller.input_router import router
     from .view.main_window import MainWindow
     router()  # curseur caché et rejet de la paume, pour toute l'application
+    from .controller.tools.lasso import release_clipboard_on_quit
+    release_clipboard_on_quit(app)
     window = MainWindow(Config.load(), args.file, debug_perf=args.debug_perf)
     window.show()
     QTimer.singleShot(0, window.ensure_vault)
