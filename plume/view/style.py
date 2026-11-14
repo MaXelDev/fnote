@@ -52,6 +52,22 @@ QPushButton {{ background: {c['surface']}; color: {c['text']}; border: 1px solid
             border-radius: {r['md']}px; padding: 6px 16px; min-height: {s['touch-min'] - 12}px; }}
 QPushButton:default {{ background: {c['accent']}; color: {c['on-accent']}; border-color: {c['accent']}; }}
 QPushButton:focus {{ border: 2px solid {c['accent']}; }}
+QPushButton:hover {{ background: {c['accent-soft']}; }}
+QPushButton:checked {{ background: {c['accent-soft']}; border: 2px solid {c['accent']}; }}
+QListWidget, QTreeView {{ background: {c['surface']}; color: {c['text']}; border: 1px solid {c['border']};
+            border-radius: {r['md']}px; outline: none; }}
+QListWidget::item, QTreeView::item {{ padding: 4px; border-radius: {r['sm']}px; }}
+QListWidget::item:selected, QTreeView::item:selected {{ background: {c['accent-soft']}; color: {c['text']}; }}
+QListWidget::item:hover, QTreeView::item:hover {{ background: {c['bg']}; }}
+QDockWidget {{ color: {c['text-muted']}; font-weight: 600; }}
+QDockWidget::title {{ background: {c['bg']}; padding: 6px 10px; }}
+QTabBar::tab {{ background: {c['bg']}; color: {c['text-muted']}; padding: 6px 14px; border: none;
+            border-bottom: 2px solid transparent; }}
+QTabBar::tab:selected {{ color: {c['text']}; border-bottom: 2px solid {c['accent']}; background: {c['surface']}; }}
+QComboBox, QSpinBox {{ background: {c['surface']}; color: {c['text']}; border: 1px solid {c['border-input']};
+            border-radius: {r['sm']}px; padding: 4px 8px; min-height: {s['touch-min'] - 12}px; }}
+QToolButton {{ color: {c['text']}; }}
+QToolTip {{ background: {c['text']}; color: {c['surface']}; border: none; padding: 4px 8px; }}
 """
 
 

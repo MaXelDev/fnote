@@ -24,7 +24,7 @@ def main(argv=None) -> int:
     args = parse_args(argv)
     configure_platform()
 
-    from PySide6.QtCore import QCoreApplication, Qt, QTimer
+    from PySide6.QtCore import QCoreApplication, Qt
     from PySide6.QtWidgets import QApplication
 
     # Aucun point du stylet ne doit être fusionné ou perdu (fluidité, §5).
@@ -51,7 +51,6 @@ def main(argv=None) -> int:
     release_clipboard_on_quit(app)
     window = MainWindow(Config.load(), args.file, debug_perf=args.debug_perf)
     window.show()
-    QTimer.singleShot(0, window.ensure_vault)
     return app.exec()
 
 
