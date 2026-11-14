@@ -134,6 +134,7 @@ class MainWindow(QMainWindow):
         self._action(e, "Supprimer la sélection", lambda: self._selection("delete"), QKeySequence.StandardKey.Delete)
         self._action(e, "Insérer une image…", self.insert_image, "Ctrl+I")
         self.extra_actions["image"] = lambda tab: self.insert_image()
+        self.extra_actions["ruler"] = self._toggle_ruler
         # Menu compact (bouton « ⋮ » de la barre)
         self.app_menu = QMenu(self)
         for menu in (m, e, v, h):
@@ -155,6 +156,11 @@ class MainWindow(QMainWindow):
         elif name in self.extra_actions:
             self.extra_actions[name](tab)
         self._sync_undo()
+
+    def _toggle_ruler(self, tab):
+        if tab is not None:
+            tab.canvas.ruler.toggle()
+        self.toolbar.set_checked("ruler", bool(tab and tab.canvas.ruler.visible))
 
     def _lasso(self):
         from ..controller.tools.lasso import LassoTool
@@ -332,6 +338,7 @@ class MainWindow(QMainWindow):
     def _on_tab_changed(self):
         tab = self.current_tab()
         self.pages_panel.set_canvas(tab.canvas if tab else None)
+        self.toolbar.set_checked("ruler", bool(tab and tab.canvas.ruler.visible))
         self._sync_undo()
         self._update_title()
 

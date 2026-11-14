@@ -85,14 +85,14 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Formes auto-corrigées (maintien ~0.5 s) | formes | must | yes | no | ligne rect cercle ellipse triangle flèche |
-| Forme reprend couleur et épaisseur du trait | formes | must | yes | no |  |
-| Option pour désactiver la reconnaissance | formes | should | yes | no |  |
-| Règle virtuelle affichable | règle | must | no | no | prioritaire ; absente de Samsung Notes PC (présente sur iPad) |
-| Règle déplaçable et pivotable deux doigts / poignée | règle | must | no | no |  |
-| Règle : angle affiché + aimantation 0/15/30/45/90° | règle | must | no | no |  |
-| Trait aimanté au bord de la règle (stylo et surligneur) | règle | must | no | no |  |
-| Graduations en cm | règle | should | no | no |  |
+| Formes auto-corrigées (maintien ~0.5 s) | formes | must | yes | yes | ligne rect cercle ellipse triangle flèche |
+| Forme reprend couleur et épaisseur du trait | formes | must | yes | yes |  |
+| Option pour désactiver la reconnaissance | formes | should | yes | yes |  |
+| Règle virtuelle affichable | règle | must | no | yes | prioritaire ; absente de Samsung Notes PC (présente sur iPad) |
+| Règle déplaçable et pivotable deux doigts / poignée | règle | must | no | yes |  |
+| Règle : angle affiché + aimantation 0/15/30/45/90° | règle | must | no | yes |  |
+| Trait aimanté au bord de la règle (stylo et surligneur) | règle | must | no | yes |  |
+| Graduations en cm | règle | should | no | yes |  |
 
 ## Phase 5 — PDF
 

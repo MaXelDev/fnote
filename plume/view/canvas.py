@@ -21,6 +21,7 @@ from ..model.document import Page
 from ..model.history import AddElements, AddPage, Command, History
 from . import style
 from .render import PageRenderer
+from .ruler import Ruler
 
 MARGIN = 18.0   # points autour du contenu
 GAP = 14.0      # points entre deux pages
@@ -74,6 +75,8 @@ class Canvas(QAbstractScrollArea):
         self.horizontalScrollBar().setSingleStep(40)
 
         self._sharp_timer = QTimer(self, singleShot=True, interval=SHARP_DELAY_MS, timeout=self._sharpen_next)
+        self.ruler = Ruler(self)
+        self.overlays.append(self.ruler)
         self._relayout()
 
     # ================= mise en page =================
@@ -337,6 +340,8 @@ class Canvas(QAbstractScrollArea):
         self.end_live()
 
     def _start(self, tool, pos, pressure, t):
+        if self.ruler.wants(pos):  # appui sur le corps ou la poignée de la règle
+            tool = self.ruler
         if tool is None:
             return
         self._active = tool
@@ -364,7 +369,7 @@ class Canvas(QAbstractScrollArea):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         for ov in self.overlays:
             ov.paint(p)
-        for tool in {self.tool, self._active, self.side_tool} - {None}:
+        for tool in {self.tool, self._active, self.side_tool} - {None, self.ruler}:
             tool.paint_overlay(p)
         if self._hover is not None and self.config.hover_dot and self._active is None:
             tool = self.tool
@@ -478,14 +483,19 @@ class Canvas(QAbstractScrollArea):
         if len(pts) == 1:
             pos = pts[0].position()
             if self._touch is None or self._touch.get("n") != 1:
-                drawing = self.config.finger_draws and self._active is None
-                self._touch = {"n": 1, "last": pos, "drawing": drawing}
+                on_ruler = self.ruler.visible and self.ruler.geom.contains(pos.x(), pos.y())
+                drawing = self.config.finger_draws and self._active is None and not on_ruler
+                self._touch = {"n": 1, "last": pos, "drawing": drawing, "ruler": on_ruler}
                 if drawing:
                     self._start(self.tool, pos, 0.5, float(e.timestamp()))
                 return
             if self._touch["drawing"]:
                 if self._active is not None:
                     self._active.move(pos, 0.5, float(e.timestamp()))
+            elif self._touch.get("ruler"):
+                d = pos - self._touch["last"]
+                self.ruler.translate(d.x(), d.y())
+                self.viewport().update()
             else:
                 d = pos - self._touch["last"]
                 self._scroll_by(-d.x(), -d.y())
@@ -495,10 +505,21 @@ class Canvas(QAbstractScrollArea):
         a, b = pts[0].position(), pts[1].position()
         center = (a + b) / 2
         dist = max(1.0, math.hypot(a.x() - b.x(), a.y() - b.y()))
+        angle = math.degrees(math.atan2(b.y() - a.y(), b.x() - a.x()))
         if self._touch is None or self._touch.get("n") != 2:
             if self._touch and self._touch.get("drawing"):
                 self._cancel_gesture()
-            self._touch = {"n": 2, "center": center, "dist": dist, "last": center}
+            on_ruler = self.ruler.visible and self.ruler.geom.contains(center.x(), center.y())
+            if on_ruler:
+                self.ruler.begin_rotate()
+            self._touch = {"n": 2, "center": center, "dist": dist, "last": center, "angle": angle, "ruler": on_ruler}
+            return
+        if self._touch.get("ruler"):  # deux doigts sur la règle : la déplacer et la pivoter
+            d = center - self._touch["center"]
+            self.ruler.translate(d.x(), d.y())
+            da = (angle - self._touch["angle"] + 180) % 360 - 180
+            self.ruler.rotate_by(da)
+            self._touch.update(center=center, angle=angle)
             return
         self.set_zoom(self.zoom * dist / self._touch["dist"], center)
         d = center - self._touch["center"]
