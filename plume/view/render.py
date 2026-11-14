@@ -203,6 +203,6 @@ class PageRenderer:
         img.setDevicePixelRatio(dpr)
         p = QPainter(img)
         p.scale(scale, scale)
-        self.paint_page(p, page, scale, exclude=exclude)
+        self.paint_page(p, page, scale * dpr, exclude=exclude)  # densité réelle : fonds PDF nets en HiDPI
         p.end()
         return img
