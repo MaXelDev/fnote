@@ -35,7 +35,7 @@ class Config:
     # Courbe de pression : points (pression brute → facteur), interpolés linéairement.
     pressure_curve: list[list[float]] = field(default_factory=lambda: [[0.0, 0.15], [0.5, 0.6], [1.0, 1.0]])
     active_favorite: int = 0
-    highlighter: dict = field(default_factory=lambda: {"tool": "highlighter", "color": "#ffe06673", "width": 14.0})
+    highlighter: dict = field(default_factory=lambda: {"tool": "highlighter", "color": "#ffe0668c", "width": 14.0})
     eraser: dict = field(default_factory=lambda: {"mode": "stroke", "size": 12.0, "highlight_only": False})
     straight_highlighter: bool = False
     pressure_sensitivity: float = 0.5
