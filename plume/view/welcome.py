@@ -21,8 +21,12 @@ class Welcome(QWidget):
         super().__init__()
         self.config = config
         outer = QVBoxLayout(self)
-        outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        box = QVBoxLayout()
+        column = QWidget()
+        column.setFixedWidth(560)
+        outer.addStretch(1)
+        outer.addWidget(column, 0, Qt.AlignmentFlag.AlignHCenter)
+        outer.addStretch(2)
+        box = QVBoxLayout(column)
         box.setSpacing(14)
         logo = QLabel()
         pm = QPixmap(str(LOGO))
@@ -62,12 +66,10 @@ class Welcome(QWidget):
         self.recent_title.setObjectName("muted")
         self.recent = QListWidget()
         self.recent.setMaximumHeight(220)
-        self.recent.setMinimumWidth(460)
         self.recent.itemActivated.connect(lambda it: self.openRecent.emit(Path(it.data(Qt.ItemDataRole.UserRole))))
         self.recent.itemClicked.connect(lambda it: self.openRecent.emit(Path(it.data(Qt.ItemDataRole.UserRole))))
         box.addWidget(self.recent_title)
         box.addWidget(self.recent)
-        outer.addLayout(box)
         self.refresh()
 
     def refresh(self):
