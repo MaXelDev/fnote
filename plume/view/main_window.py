@@ -36,6 +36,8 @@ class NoteTab(QWidget):
 
     def apply_tools(self):
         self.canvas.set_tool(self.tools.make_tool(self.canvas))
+        if self.canvas.side_tool is not None:
+            self.canvas.side_tool.dispose()
         self.canvas.side_tool = self.tools.make_side_tool(self.canvas)
 
 
@@ -125,6 +127,13 @@ class MainWindow(QMainWindow):
         self.addAction(self._shortcut("L", lambda: self.tools.set_mode("lasso")))
         self.addAction(self._shortcut("R", lambda: self._toolbar_action("ruler")))
         self.addAction(self._shortcut("F9", lambda: self._toolbar_action("sidebar")))
+        self._action(e, "Coller", self.paste, QKeySequence.StandardKey.Paste)
+        self._action(e, "Copier la sélection", lambda: self._selection("copy"), QKeySequence.StandardKey.Copy)
+        self._action(e, "Couper la sélection", lambda: self._selection("cut"), QKeySequence.StandardKey.Cut)
+        self._action(e, "Dupliquer la sélection", lambda: self._selection("duplicate"), "Ctrl+D")
+        self._action(e, "Supprimer la sélection", lambda: self._selection("delete"), QKeySequence.StandardKey.Delete)
+        self._action(e, "Insérer une image…", self.insert_image, "Ctrl+I")
+        self.extra_actions["image"] = lambda tab: self.insert_image()
         # Menu compact (bouton « ⋮ » de la barre)
         self.app_menu = QMenu(self)
         for menu in (m, e, v, h):
@@ -145,6 +154,47 @@ class MainWindow(QMainWindow):
             self.app_menu.exec(b.mapToGlobal(b.rect().bottomLeft()))
         elif name in self.extra_actions:
             self.extra_actions[name](tab)
+        self._sync_undo()
+
+    def _lasso(self):
+        from ..controller.tools.lasso import LassoTool
+        tab = self.current_tab()
+        if tab and isinstance(tab.canvas.tool, LassoTool):
+            return tab.canvas.tool
+        return None
+
+    def _selection(self, key: str):
+        if (tool := self._lasso()) is not None:
+            tool.action(key)
+            self._sync_undo()
+
+    def paste(self):
+        """Ctrl+V : sélection copiée dans Plume, sinon image du presse-papiers système."""
+        from PySide6.QtWidgets import QApplication
+        from ..controller import images
+        from ..controller.tools.lasso import CLIPBOARD, MIME_MARK, paste
+        tab = self.current_tab()
+        if tab is None:
+            return
+        mime = QApplication.clipboard().mimeData()
+        if CLIPBOARD["elements"] and mime is not None and mime.hasFormat(MIME_MARK):
+            self.tools.set_mode("lasso")
+            paste(tab.canvas, self._lasso())
+        elif mime and mime.hasImage():
+            images.add_image(tab.canvas, QApplication.clipboard().image())
+        self._sync_undo()
+
+    def insert_image(self):
+        from ..controller import images
+        tab = self.current_tab()
+        if tab is None:
+            return
+        path, _ = QFileDialog.getOpenFileName(self, "Insérer une image", str(Path.home() / "Images"), images.IMAGE_FILTER)
+        if not path:
+            return
+        img = images.load_file(path)
+        if img.isNull() or images.add_image(tab.canvas, img) is None:
+            QMessageBox.warning(self, "Image illisible", "Ce fichier n'est pas une image prise en charge (ou dépasse 64 Mo).")
         self._sync_undo()
 
     def _sync_undo(self):
