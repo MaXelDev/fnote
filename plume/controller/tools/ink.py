@@ -154,7 +154,10 @@ class InkTool(Tool):
         if self._smoother is None:
             return
         self._hold.stop()
+        last_raw = self._smoother._raw[-1] if self._smoother._raw else None
         self._smoother = None
+        if last_raw is not None and self._ruler_side is None and self.points[-1][:2] != last_raw[:2]:
+            self.points.append(last_raw)  # le trait finit exactement là où le stylet s'est levé
         if self._shape is not None:
             shape, self._shape = self._shape, None
             self.points = []
