@@ -8,11 +8,11 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Fenêtre de diagnostic --debug-tablet | stylet | must | no | no | spécifique Plume |
-| Sauvegarde atomique (aucune perte sur crash) | fichiers | must | partial | no |  |
-| Format .plume (ZIP + document.json versionné + assets) | fichiers | must | no | no | Samsung utilise .sdocx |
-| Paramètres dans ~/.config/plume/config.json | paramètres | must | no | no |  |
-| --debug-tablet affiche l'échelle et le décalage stylet/pointeur | stylet | should | no | no | fix #7 (Rnote #1543) |
+| Fenêtre de diagnostic --debug-tablet | stylet | must | no | yes | spécifique Plume |
+| Sauvegarde atomique (aucune perte sur crash) | fichiers | must | partial | yes |  |
+| Format .plume (ZIP + document.json versionné + assets) | fichiers | must | no | yes | Samsung utilise .sdocx |
+| Paramètres dans ~/.config/plume/config.json | paramètres | must | no | yes |  |
+| --debug-tablet affiche l'échelle et le décalage stylet/pointeur | stylet | should | no | yes | fix #7 (Rnote #1543) |
 
 ## Phase 1 — Moteur d'encre
 
@@ -112,18 +112,18 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Créer / renommer / déplacer des notes et dossiers | notes | must | yes | no |  |
 | Supprimer vers la corbeille système | notes | must | yes | no |  |
 | Plusieurs notes en onglets | notes | should | no | no |  |
-| Plein écran F11 | interface | should | yes | no |  |
-| Thème clair/sombre suivant le système | interface | should | yes | no | fonds de page restent blancs |
+| Plein écran F11 | interface | should | yes | partial |  |
+| Thème clair/sombre suivant le système | interface | should | yes | partial | fonds de page restent blancs |
 | Raccourcis clavier des outils | interface | should | yes | no |  |
 
 ## Hors périmètre (skip)
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Synchronisation / cloud / compte Samsung | hors périmètre | skip | yes | no | 7.12 — 100 % local |
-| Recherche dans l'écriture manuscrite (OCR) | hors périmètre | skip | yes | no | 7.12 |
-| Texte tapé / zones de texte | hors périmètre | skip | yes | no | 7.12 |
-| Enregistrement audio synchronisé | hors périmètre | skip | yes | no | 7.12 |
-| Assistant IA (résumé / correction / mise en forme) | hors périmètre | skip | yes | no | service distant ; non demandé |
-| Notes partagées / collaboration | hors périmètre | skip | yes | no | réseau |
-| Compatibilité Windows / macOS | hors périmètre | skip | yes | no | 7.12 |
+| Synchronisation / cloud / compte Samsung | hors périmètre | skip | yes | skip | 7.12 — 100 % local |
+| Recherche dans l'écriture manuscrite (OCR) | hors périmètre | skip | yes | skip | 7.12 |
+| Texte tapé / zones de texte | hors périmètre | skip | yes | skip | 7.12 |
+| Enregistrement audio synchronisé | hors périmètre | skip | yes | skip | 7.12 |
+| Assistant IA (résumé / correction / mise en forme) | hors périmètre | skip | yes | skip | service distant ; non demandé |
+| Notes partagées / collaboration | hors périmètre | skip | yes | skip | réseau |
+| Compatibilité Windows / macOS | hors périmètre | skip | yes | skip | 7.12 |
