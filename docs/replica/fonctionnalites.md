@@ -29,7 +29,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Le doigt ne dessine pas (option pour l'activer) | stylet | must | yes | yes |  |
 | Souris dessine / molette défile / Ctrl+molette zoome | navigation | must | partial | yes |  |
 | Mode --debug-perf (fps et temps de rendu) | encre | should | no | yes | spécifique Plume |
-| Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons) | édition | must | yes | partial |  |
+| Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons) | édition | must | yes | yes |  |
 | Sauvegarde automatique après inactivité | fichiers | must | yes | yes |  |
 | Défilement vertical continu multi-pages A4 | pages | must | yes | yes |  |
 | Ajout automatique de page en bas | pages | must | yes | yes |  |
@@ -43,28 +43,28 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Bouton latéral maintenu = gomme temporaire (ou lasso) | stylet | must | yes | partial | configurable |
+| Bouton latéral maintenu = gomme temporaire (ou lasso) | stylet | must | yes | yes | configurable |
 | Ajuster à la largeur | navigation | should | yes | yes |  |
-| Types de pointe : plume / bille / crayon | stylo | should | yes | no | Samsung en propose plus (pinceau calligraphie…) |
-| 3 à 5 stylos favoris (outil+couleur+épaisseur) | stylo | must | yes | no |  |
-| Palette prédéfinie ≥ 16 couleurs | couleurs | must | yes | no |  |
-| Sélecteur avancé HSV + RGB + HEX + opacité | couleurs | must | yes | no |  |
-| Couleurs récentes + ajout à la palette | couleurs | should | yes | no |  |
+| Types de pointe : plume / bille / crayon | stylo | should | yes | yes | Samsung en propose plus (pinceau calligraphie…) |
+| 3 à 5 stylos favoris (outil+couleur+épaisseur) | stylo | must | yes | yes |  |
+| Palette prédéfinie ≥ 16 couleurs | couleurs | must | yes | yes |  |
+| Sélecteur avancé HSV + RGB + HEX + opacité | couleurs | must | yes | yes |  |
+| Couleurs récentes + ajout à la palette | couleurs | should | yes | yes |  |
 | Surligneur translucide en multiply sous l'encre | surligneur | must | yes | yes |  |
 | Surligneur sans accumulation d'opacité dans un trait | surligneur | must | yes | yes |  |
-| Surligneur droit (redressement horizontal) | surligneur | must | yes | partial |  |
-| Couleurs de surligneur prédéfinies + libre | surligneur | must | yes | no |  |
+| Surligneur droit (redressement horizontal) | surligneur | must | yes | yes |  |
+| Couleurs de surligneur prédéfinies + libre | surligneur | must | yes | yes |  |
 | Gomme trait entier | gomme | must | yes | yes |  |
 | Gomme partielle (coupe le trait) | gomme | must | yes | yes |  |
-| Taille de gomme réglable | gomme | should | yes | no |  |
-| Gomme « surligneur seulement » | gomme | should | yes | partial |  |
-| Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé | pages | must | yes | no |  |
-| Fond par défaut dans les paramètres | pages | should | yes | no |  |
-| Réorganiser / supprimer des pages + miniatures | pages | must | yes | no |  |
-| Barre d'outils compacte à gros boutons pour stylet | interface | must | yes | no |  |
+| Taille de gomme réglable | gomme | should | yes | yes |  |
+| Gomme « surligneur seulement » | gomme | should | yes | yes |  |
+| Fonds de page : blanc / ligné / quadrillé 5 mm / pointillé | pages | must | yes | yes |  |
+| Fond par défaut dans les paramètres | pages | should | yes | partial |  |
+| Réorganiser / supprimer des pages + miniatures | pages | must | yes | yes |  |
+| Barre d'outils compacte à gros boutons pour stylet | interface | must | yes | yes |  |
 | Gomme par intersection de segments (aucun trait sauté) | gomme | must | no | yes | fix #4 (Rnote #1247) |
 | Surligneur rendu en un seul chemin (opacité uniforme) | surligneur | must | no | yes | fix #5 (Rnote #106 #891) |
-| Une seule barre d'outils + réglages en popover | interface | must | no | no | fix #6 (HN) |
+| Une seule barre d'outils + réglages en popover | interface | must | no | yes | fix #6 (HN) |
 
 ## Phase 3 — Lasso et images
 
