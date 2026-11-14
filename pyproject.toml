@@ -25,7 +25,7 @@ plume = "plume.app:main"
 include = ["plume*"]
 
 [tool.setuptools.package-data]
-plume = ["resources/*.json", "resources/icons/*.svg"]
+plume = ["resources/*.json", "resources/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
