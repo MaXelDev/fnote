@@ -36,6 +36,8 @@ class Canvas(QAbstractScrollArea):
     zoomChanged = Signal(float)
     pageChanged = Signal(int)
     toolFinished = Signal()     # un geste vient de se terminer
+    pagesInvalidated = Signal(object)  # ensemble d'id de pages (None = toutes) : miniatures à refaire
+    layoutChanged = Signal()    # pages ajoutées, supprimées ou déplacées
 
     def __init__(self, doc, history: History, config, pdf_source=None, debug_perf: bool = False):
         super().__init__()
@@ -74,6 +76,7 @@ class Canvas(QAbstractScrollArea):
 
     # ================= mise en page =================
     def _relayout(self):
+        n_before = len(self._tops)
         y, self._tops = 0.0, []
         for p in self.doc.pages:
             self._tops.append(y)
@@ -84,6 +87,9 @@ class Canvas(QAbstractScrollArea):
             self._apply_fit_width()
         self._update_scrollbars()
         self.viewport().update()
+        if n_before and n_before != len(self._tops) or getattr(self, "_order", None) != [p.id for p in self.doc.pages]:
+            self._order = [p.id for p in self.doc.pages]
+            self.layoutChanged.emit()
 
     def _apply_fit_width(self):
         vw = max(self.viewport().width(), 200)
@@ -188,6 +194,7 @@ class Canvas(QAbstractScrollArea):
         else:
             for pid in page_ids:
                 self._cache.pop(pid, None)
+        self.pagesInvalidated.emit(None if page_ids is None else set(page_ids))
         self.viewport().update()
 
     def _page_image(self, i: int) -> QImage:
@@ -227,7 +234,7 @@ class Canvas(QAbstractScrollArea):
         on_top = all(Page.layer_for(e) == "shapes" or (Page.layer_for(e) == "ink" and not page.shapes)
                      for e in elements)
         if entry is None or not on_top:
-            self._cache.pop(page.id, None)
+            self.invalidate({page.id})
             return
         scale, img = entry
         p = QPainter(img)
@@ -236,6 +243,7 @@ class Canvas(QAbstractScrollArea):
         for e in elements:
             self.renderer.paint_element(p, e)
         p.end()
+        self.pagesInvalidated.emit({page.id})
 
     def set_curve(self, points):
         self.curve = PressureCurve(points)
@@ -273,7 +281,7 @@ class Canvas(QAbstractScrollArea):
         return touched
 
     def _after_change(self, touched, n_pages_before, emit=True):
-        if len(self.doc.pages) != n_pages_before:
+        if len(self.doc.pages) != n_pages_before or self._order != [p.id for p in self.doc.pages]:
             self._relayout()
         self.invalidate(touched)
         if emit:
