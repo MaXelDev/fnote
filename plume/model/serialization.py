@@ -189,17 +189,23 @@ def from_dict(data: dict, assets: dict[str, bytes] | None = None, source_pdf: by
         ))
     if not pages:
         raise PlumeFormatError("note sans page")
+    ids = [p.id for p in pages] + [e.id for p in pages for e in p.elements()]
+    if len(ids) != len(set(ids)):
+        raise PlumeFormatError("identifiants en double")
     return Document(pages=pages, title=str(meta.get("title", "")), created=str(meta.get("created", "")),
                     modified=str(meta.get("modified", "")), source_pdf=source_pdf, assets=assets)
 
 
-def _read(z: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int) -> bytes:
+def _read(z: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int, budget: list[int]) -> bytes:
+    """Lit une entrée en plafonnant sa taille ET le total réellement décompressé (budget partagé)."""
+    limit = min(limit, budget[0])
     if info.file_size > limit:
         raise PlumeFormatError(f"entrée trop volumineuse : {info.filename}")
     with z.open(info) as fh:
         data = fh.read(limit + 1)  # ne fait pas confiance à la taille déclarée
     if len(data) > limit:
         raise PlumeFormatError(f"entrée trop volumineuse : {info.filename}")
+    budget[0] -= len(data)
     return data
 
 
@@ -209,11 +215,10 @@ def load(path: str | os.PathLike) -> Document:
             infos = {i.filename: i for i in z.infolist() if not i.is_dir()}
             if DOC_NAME not in infos:
                 raise PlumeFormatError("document.json absent")
-            if sum(i.file_size for i in infos.values()) > MAX_TOTAL:
-                raise PlumeFormatError("archive trop volumineuse")
-            data = json.loads(_read(z, infos[DOC_NAME], MAX_JSON))
-            assets = {n: _read(z, i, MAX_ASSET) for n, i in infos.items() if ASSET_RE.match(n)}
-            pdf = _read(z, infos[PDF_NAME], MAX_PDF) if PDF_NAME in infos else None
+            budget = [MAX_TOTAL]
+            data = json.loads(_read(z, infos[DOC_NAME], MAX_JSON, budget))
+            assets = {n: _read(z, i, MAX_ASSET, budget) for n, i in infos.items() if ASSET_RE.match(n)}
+            pdf = _read(z, infos[PDF_NAME], MAX_PDF, budget) if PDF_NAME in infos else None
             # Toute autre entrée (y compris « ../ ») est ignorée : rien n'est extrait sur disque.
     except (zipfile.BadZipFile, json.JSONDecodeError, UnicodeDecodeError, EOFError) as exc:
         raise PlumeFormatError(f"fichier .plume corrompu ({exc.__class__.__name__})") from exc

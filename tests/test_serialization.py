@@ -109,3 +109,18 @@ def test_oversized_entry_rejected(tmp_path, monkeypatch):
     write_zip(tmp_path / "o.plume", minimal(), {"assets/0123456789abcdef.png": b"x" * 100})
     with pytest.raises(ser.PlumeFormatError, match="volumineuse"):
         ser.load(tmp_path / "o.plume")
+
+
+def test_total_decompressed_budget(tmp_path, monkeypatch):
+    monkeypatch.setattr(ser, "MAX_TOTAL", 150)
+    extra = {f"assets/{i:016x}.png": b"x" * 60 for i in range(3)}
+    write_zip(tmp_path / "t.plume", minimal(), extra)
+    with pytest.raises(ser.PlumeFormatError, match="volumineuse"):
+        ser.load(tmp_path / "t.plume")
+
+
+def test_duplicate_ids_rejected(tmp_path):
+    s = {"type": "stroke", "id": "same", "tool": "pencil", "color": "#000000ff", "width": 1, "points": [[0, 0, 0, 0]]}
+    write_zip(tmp_path / "d.plume", minimal(pages=[{"id": "p", "width": 1, "height": 1, "ink": [s, dict(s)]}]))
+    with pytest.raises(ser.PlumeFormatError, match="double"):
+        ser.load(tmp_path / "d.plume")
