@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import time
 
-from PySide6.QtCore import QEvent, QObject, Qt, Signal
+from PySide6.QtCore import QEvent, QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QCursor, QInputDevice
 from PySide6.QtWidgets import QApplication
 
 PALM_GRACE_S = 0.5  # le tactile reste ignoré un instant après le départ du stylet
+PEN_IDLE_MS = 500  # sans événement de proximité (X11) : stylet considéré parti après ce silence
 MOUSE_WAKE_PX = 8.0  # la souris doit vraiment bouger pour faire revenir le curseur
 _PEN_EVENTS = {QEvent.Type.TabletPress, QEvent.Type.TabletMove, QEvent.Type.TabletRelease}
 
@@ -25,6 +26,8 @@ class InputRouter(QObject):
         self._pen_left_at = 0.0
         self._cursor_hidden = False
         self._mouse_from = None  # position souris de référence depuis le dernier passage du stylet
+        self._has_proximity = False  # Wayland envoie la proximité ; XWayland non
+        self._idle = QTimer(self, singleShot=True, interval=PEN_IDLE_MS, timeout=self._pen_gone)
         app.installEventFilter(self)
 
     # ----- état -----
@@ -47,18 +50,23 @@ class InputRouter(QObject):
             QApplication.restoreOverrideCursor()
             self._cursor_hidden = False
 
+    def _pen_gone(self):
+        self.pen_near = False
+        self._pen_left_at = time.monotonic()
+        self.proximityChanged.emit(False)
+
     # ----- filtre -----
     def eventFilter(self, obj, event):
         t = event.type()
         if t == QEvent.Type.TabletEnterProximity:
+            self._has_proximity = True
             self.pen_near = True
             self._hide_cursor()
             self._mouse_from = None
             self.proximityChanged.emit(True)
         elif t == QEvent.Type.TabletLeaveProximity:
-            self.pen_near = False
-            self._pen_left_at = time.monotonic()
-            self.proximityChanged.emit(False)
+            self._has_proximity = True
+            self._pen_gone()
         elif t in _PEN_EVENTS:
             # Certains compositeurs n'envoient pas la proximité : on cache quand même.
             if not self.pen_near:
@@ -66,6 +74,8 @@ class InputRouter(QObject):
                 self.proximityChanged.emit(True)
             self._hide_cursor()
             self._mouse_from = None
+            if not self._has_proximity:
+                self._idle.start()
         elif t == QEvent.Type.Enter and obj.isWidgetType() and obj.isWindow():
             self._mouse_from = None  # GNOME ramène la souris sous la pointe : nouvelle référence
         elif t == QEvent.Type.MouseMove and self._cursor_hidden and not self.pen_near:

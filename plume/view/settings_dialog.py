@@ -80,7 +80,9 @@ class SettingsDialog(QDialog):
                            ("hover_dot", "Point discret sous la pointe en survol"),
                            ("shape_recognition", "Formes auto-corrigées (maintenir le stylet immobile)"),
                            ("straight_highlighter", "Surligneur droit"),
-                           ("companion_pdf", "Créer NomDeLaNote.pdf à chaque sauvegarde (pour Obsidian)")):
+                           ("companion_pdf", "Créer NomDeLaNote.pdf à chaque sauvegarde (pour Obsidian)"),
+                           ("x11_mode", "Curseur toujours caché pendant l'écriture (mode X11,\n"
+                                        "un peu moins fluide ; au prochain démarrage de Plume)")):
             cb = QCheckBox(label)
             cb.setChecked(bool(getattr(config, key)))
             self.checks[key] = cb
