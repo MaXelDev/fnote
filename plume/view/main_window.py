@@ -55,6 +55,8 @@ class MainWindow(QMainWindow):
         self.debug_perf = debug_perf
         self.tools = ToolState(config)
         self.tools.changed.connect(self._tools_changed)
+        from PySide6.QtCore import QTimer
+        self._config_timer = QTimer(self, singleShot=True, interval=800, timeout=self.config.save)
         self.extra_actions = {}  # actions de barre ajoutées par d'autres modules : nom → f(onglet)
         from ..pdf.companion import CompanionExporter
         self.companion = CompanionExporter(self)
@@ -252,7 +254,7 @@ class MainWindow(QMainWindow):
     def _tools_changed(self):
         for tab in self.note_tabs():
             tab.apply_tools()
-        self.config.save()
+        self._config_timer.start()  # sauvegarde groupée : un curseur qu'on glisse = une écriture
 
     def undo(self):
         if tab := self.current_tab():
