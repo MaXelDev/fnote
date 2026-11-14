@@ -7,6 +7,12 @@ def test_wayland_with_xcb_fallback():
     assert env["QT_QPA_PLATFORM"] == "wayland;xcb"
 
 
+def test_x11_mode_prefers_xwayland():
+    env = {"WAYLAND_DISPLAY": "wayland-0", "DISPLAY": ":0"}
+    configure_platform(env, x11=True)
+    assert env["QT_QPA_PLATFORM"] == "xcb;wayland"
+
+
 def test_user_choice_is_respected():
     env = {"WAYLAND_DISPLAY": "wayland-0", "QT_QPA_PLATFORM": "xcb"}
     configure_platform(env)

@@ -237,3 +237,27 @@ def test_cursor_comes_back_only_on_real_mouse_motion():
     finally:
         app.removeEventFilter(r)
         r._show_cursor()
+
+
+def test_pen_considered_gone_after_silence_without_proximity_events():
+    import time
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QPointingDevice, QTabletEvent
+    from plume.controller.input_router import InputRouter
+    r = InputRouter(app)
+    dev = QPointingDevice("stylet", 3, QPointingDevice.DeviceType.Stylus, QPointingDevice.PointerType.Pen,
+                          QPointingDevice.Capability.Position | QPointingDevice.Capability.Pressure, 1, 3)
+    ev = QTabletEvent(QEvent.Type.TabletMove, dev, QPointF(5, 5), QPointF(5, 5), 0.0, 0, 0, 0, 0, 0,
+                      Qt.KeyboardModifier.NoModifier, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton)
+    try:
+        r.eventFilter(app, ev)  # X11 : un mouvement du stylet, sans proximité
+        assert r.pen_near and r.mouse_blocked()
+        r._idle.setInterval(10)
+        r._idle.start()
+        deadline = time.monotonic() + 1
+        while r.pen_near and time.monotonic() < deadline:
+            app.processEvents()
+        assert not r.pen_near  # la souris et le doigt refonctionnent
+    finally:
+        app.removeEventFilter(r)
+        r._show_cursor()

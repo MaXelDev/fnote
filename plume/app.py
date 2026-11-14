@@ -6,10 +6,15 @@ import os
 import sys
 
 
-def configure_platform(env=os.environ) -> None:
-    """Wayland natif en priorité, repli automatique sur X11 (xcb) si indisponible."""
+def configure_platform(env=os.environ, x11: bool = False) -> None:
+    """Wayland natif, ou X11 via XWayland (x11=True) avec repli sur l'autre.
+
+    Sous GNOME Wayland, le curseur vu pendant l'écriture est celui de la souris, avec la forme
+    choisie par la dernière fenêtre survolée : Plume ne peut le cacher que si la souris est
+    passée sur lui. Via XWayland, Plume gère lui-même le curseur et il reste caché.
+    """
     if "QT_QPA_PLATFORM" not in env and env.get("WAYLAND_DISPLAY"):
-        env["QT_QPA_PLATFORM"] = "wayland;xcb"
+        env["QT_QPA_PLATFORM"] = "xcb;wayland" if x11 and env.get("DISPLAY") else "wayland;xcb"
 
 
 def parse_args(argv=None):
@@ -22,7 +27,9 @@ def parse_args(argv=None):
 
 def main(argv=None) -> int:
     args = parse_args(argv)
-    configure_platform()
+    from .model.config import Config
+    config = Config.load()
+    configure_platform(x11=config.x11_mode)
 
     from PySide6.QtCore import QCoreApplication, Qt
     from PySide6.QtWidgets import QApplication
@@ -34,7 +41,6 @@ def main(argv=None) -> int:
     app.setApplicationName("Plume")
     app.setDesktopFileName("plume")  # app_id Wayland
 
-    from .model.config import Config
     from .view import style
     style.apply(app)
 
@@ -49,7 +55,7 @@ def main(argv=None) -> int:
     router()  # curseur caché et rejet de la paume, pour toute l'application
     from .controller.tools.lasso import release_clipboard_on_quit
     release_clipboard_on_quit(app)
-    window = MainWindow(Config.load(), args.file, debug_perf=args.debug_perf)
+    window = MainWindow(config, args.file, debug_perf=args.debug_perf)
     window.show()
     return app.exec()
 
