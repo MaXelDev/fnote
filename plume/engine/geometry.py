@@ -19,7 +19,9 @@ def widths(points, base_width: float, tool: str, curve: PressureCurve) -> np.nda
     p = np.array([pt[2] for pt in points], dtype=float)
     if tool == "fountain":
         return base_width * curve(p)
-    return np.full(len(points), float(base_width))  # bille, crayon, surligneur : constante
+    if tool == "pencil":  # crayon : légère variation, comme une mine qu'on appuie
+        return base_width * (0.6 + 0.4 * curve(p))
+    return np.full(len(points), float(base_width))  # bille, surligneur : constante
 
 
 def _cap(center, normal, radius, start: bool) -> np.ndarray:

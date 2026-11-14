@@ -5,8 +5,8 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import (QFileDialog, QInputDialog, QLabel, QMainWindow, QMessageBox, QTabWidget,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QDockWidget, QFileDialog, QInputDialog, QLabel, QMainWindow, QMenu, QMessageBox,
+                               QTabWidget, QVBoxLayout, QWidget)
 
 from ..controller.document_controller import DocumentController
 from ..controller.tool_state import ToolState
@@ -14,6 +14,8 @@ from ..model import serialization
 from ..model.config import Config
 from ..model.document import Document
 from .canvas import Canvas
+from .pages_panel import PagesPanel
+from .toolbar import Toolbar
 
 
 class NoteTab(QWidget):
@@ -44,6 +46,7 @@ class MainWindow(QMainWindow):
         self.debug_perf = debug_perf
         self.tools = ToolState(config)
         self.tools.changed.connect(self._tools_changed)
+        self.extra_actions = {}  # actions de barre ajoutées par d'autres modules : nom → f(onglet)
         self.resize(1200, 860)
 
         self.tabs = QTabWidget()
@@ -51,14 +54,26 @@ class MainWindow(QMainWindow):
         self.tabs.setMovable(True)
         self.tabs.setDocumentMode(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
-        self.tabs.currentChanged.connect(lambda *_: self._on_tab_changed())
         self.empty = QLabel("Crée une note (Ctrl+N) ou ouvre-en une (Ctrl+O).")
         self.empty.setObjectName("muted")
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.tabs.addTab(self.empty, "Accueil")
         self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
         self.setCentralWidget(self.tabs)
+        self.toolbar = Toolbar(self.tools, self)
+        self.toolbar.action.connect(self._toolbar_action)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
+        self.pages_panel = PagesPanel()
+        self.pages_dock = QDockWidget("Pages", self)
+        self.pages_dock.setObjectName("pages")
+        self.pages_dock.setWidget(self.pages_panel)
+        self.pages_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.pages_dock)
+        self.pages_dock.hide()
+        self.pages_dock.visibilityChanged.connect(lambda on: self.toolbar.set_checked("pages", on))
         self._build_menus()
+        self.menuBar().hide()  # tout passe par la barre d'outils et le bouton « Menu »
+        self.tabs.currentChanged.connect(lambda *_: self._on_tab_changed())
         if open_path:
             self.open_file(Path(open_path))
         self._update_title()
@@ -101,6 +116,42 @@ class MainWindow(QMainWindow):
         self._action(v, "Plein écran", self.toggle_fullscreen, "F11")
         h = self.menuBar().addMenu("&Aide")
         self._action(h, "Diagnostic du stylet…", self.show_tablet_debug)
+        # Raccourcis des outils
+        for i in range(len(self.config.favorites)):
+            self.addAction(self._shortcut(str(i + 1), lambda i=i: self.tools.set_favorite(i)))
+        self.addAction(self._shortcut("P", lambda: self.tools.set_mode("pen")))
+        self.addAction(self._shortcut("H", lambda: self.tools.set_mode("highlighter")))
+        self.addAction(self._shortcut("E", lambda: self.tools.set_mode("eraser")))
+        self.addAction(self._shortcut("L", lambda: self.tools.set_mode("lasso")))
+        self.addAction(self._shortcut("R", lambda: self._toolbar_action("ruler")))
+        self.addAction(self._shortcut("F9", lambda: self._toolbar_action("sidebar")))
+        # Menu compact (bouton « ⋮ » de la barre)
+        self.app_menu = QMenu(self)
+        for menu in (m, e, v, h):
+            self.app_menu.addMenu(menu)
+
+    def _toolbar_action(self, name: str):
+        tab = self.current_tab()
+        if name == "undo":
+            self.undo()
+        elif name == "redo":
+            self.redo()
+        elif name == "fit":
+            self.fit_width()
+        elif name == "pages":
+            self.pages_dock.setVisible(not self.pages_dock.isVisible())
+        elif name == "menu":
+            b = self.toolbar.buttons["menu"]
+            self.app_menu.exec(b.mapToGlobal(b.rect().bottomLeft()))
+        elif name in self.extra_actions:
+            self.extra_actions[name](tab)
+        self._sync_undo()
+
+    def _sync_undo(self):
+        tab = self.current_tab()
+        h = tab.ctl.history if tab else None
+        self.toolbar.set_enabled("undo", bool(h and h.can_undo))
+        self.toolbar.set_enabled("redo", bool(h and h.can_redo))
 
     def _shortcut(self, seq, slot):
         act = QAction(self)
@@ -117,10 +168,12 @@ class MainWindow(QMainWindow):
     def undo(self):
         if tab := self.current_tab():
             tab.canvas.undo()
+        self._sync_undo()
 
     def redo(self):
         if tab := self.current_tab():
             tab.canvas.redo()
+        self._sync_undo()
 
     def _zoom(self, factor):
         if tab := self.current_tab():
@@ -194,6 +247,7 @@ class MainWindow(QMainWindow):
         ctl.saveFailed.connect(lambda msg: QMessageBox.critical(self, "Échec de l'enregistrement", msg))
         tab = NoteTab(ctl, self.tools, self.debug_perf)
         tab.titleChanged.connect(self._refresh_tab_titles)
+        tab.canvas.changed.connect(self._sync_undo)
         if self.tabs.indexOf(self.empty) >= 0:
             self.tabs.removeTab(self.tabs.indexOf(self.empty))
         idx = self.tabs.addTab(tab, ctl.title)
@@ -226,6 +280,9 @@ class MainWindow(QMainWindow):
                 self.statusBar().showMessage("Enregistré", 2000)
 
     def _on_tab_changed(self):
+        tab = self.current_tab()
+        self.pages_panel.set_canvas(tab.canvas if tab else None)
+        self._sync_undo()
         self._update_title()
 
     def _update_title(self) -> None:
