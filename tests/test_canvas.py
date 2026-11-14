@@ -179,3 +179,61 @@ def test_stroke_ends_exactly_at_pen_lift():
     s = c.doc.pages[0].ink[0]
     end = c.page_to_view(0, s.points[-1][0], s.points[-1][1])
     assert abs(end.x() - (r.x() + 400)) < 0.5
+
+
+def _tablet(c, kind, pos, pressure, button, buttons):
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QPointingDevice, QTabletEvent
+    dev = QPointingDevice("stylet", 1, QPointingDevice.DeviceType.Stylus, QPointingDevice.PointerType.Pen,
+                          QPointingDevice.Capability.Position | QPointingDevice.Capability.Pressure, 1, 3)
+    ev = QTabletEvent(getattr(QEvent.Type, kind), dev, QPointF(*pos), QPointF(*pos), pressure,
+                      0, 0, 0, 0, 0, Qt.KeyboardModifier.NoModifier, button, buttons)
+    c.viewportEvent(ev)
+
+
+def test_side_button_in_hover_only_arms_eraser():
+    from PySide6.QtCore import Qt
+    L, R, N = Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton, Qt.MouseButton.NoButton
+    c = make(1)
+    c.tool = InkTool(c, PEN)
+    c.side_tool = EraserTool(c, {"mode": "stroke", "size": 12, "highlight_only": False})
+    draw(c, c.tool, [(100, 100 + i * 10) for i in range(10)])
+    assert len(c.doc.pages[0].ink) == 1
+    # bouton pressé au-dessus de l'écran, puis survol du trait : rien n'est effacé, le cercle s'affiche
+    _tablet(c, "TabletPress", (60, 140), 0.0, R, R)
+    _tablet(c, "TabletMove", (100, 140), 0.0, N, R)
+    assert len(c.doc.pages[0].ink) == 1 and c.side_tool._pos is not None and c._active is None
+    # la pointe touche l'écran, bouton toujours maintenu : on efface
+    _tablet(c, "TabletPress", (100, 140), 0.5, L, L | R)
+    _tablet(c, "TabletMove", (100, 150), 0.5, N, L | R)
+    _tablet(c, "TabletRelease", (100, 150), 0.0, L, R)
+    assert c.doc.pages[0].ink == []
+    # bouton relâché : retour au stylo, le cercle disparaît
+    _tablet(c, "TabletRelease", (100, 150), 0.0, R, N)
+    assert c.side_tool._pos is None
+
+
+def test_cursor_comes_back_only_on_real_mouse_motion():
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QMouseEvent, QPointingDevice
+    from plume.controller.input_router import InputRouter
+    r = InputRouter(app)
+    pad = QPointingDevice("pavé", 2, QPointingDevice.DeviceType.TouchPad, QPointingDevice.PointerType.Generic,
+                          QPointingDevice.Capability.Position, 1, 2)
+
+    def move(x):
+        ev = QMouseEvent(QEvent.Type.MouseMove, QPointF(x, 0), QPointF(x, 0), QPointF(x, 0), Qt.MouseButton.NoButton,
+                         Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier, pad)
+        r.eventFilter(app, ev)
+
+    try:
+        r.eventFilter(app, QEvent(QEvent.Type.TabletEnterProximity))
+        r.eventFilter(app, QEvent(QEvent.Type.TabletLeaveProximity))
+        move(300)  # faux mouvement envoyé par GNOME au départ du stylet
+        move(302)
+        assert r._cursor_hidden
+        move(340)  # vrai déplacement
+        assert not r._cursor_hidden
+    finally:
+        app.removeEventFilter(r)
+        r._show_cursor()
