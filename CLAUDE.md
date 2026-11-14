@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"   # installation
+git config core.hooksPath .githooks     # active le pre-commit (pytest) après un clone
 .venv/bin/plume [note.plume]            # lancer (Wayland natif, repli xcb)
 .venv/bin/plume --debug-tablet          # diagnostic du stylet (pression, proximité, Hz, échelle)
 .venv/bin/pytest -q                     # tous les tests
@@ -44,5 +45,5 @@ MVC, détaillée dans `docs/replica/architecture.md` (interfaces entre couches, 
 - **Par phases** (§12 de `PROMPT_Plume.md`), une branche par phase (`phase-1-encre`, …). À la fin de chaque phase : s'arrêter et donner commandes de lancement, checklist de test manuel au stylet, points fragiles ; attendre le retour de l'utilisateur. PR (`gh pr create`), merge dans `main` et tag `v0.N-phaseN` **seulement après sa validation**.
 - **Commits** : petits (un changement cohérent, ~200 lignes max), Conventional Commits en français (`feat(encre): …`, `fix(lasso): …`, `test(pdf): …`). Avant chaque commit : `pytest` vert et l'appli démarre. Ne jamais committer de notes, PDF de cours ni le chemin du vault (voir `.gitignore`). Si un changement casse ce qui était validé, proposer `git revert`.
 - **Pack Replica** = colonne vertébrale : la matrice `docs/replica/features.csv` est la checklist du projet (colonne `clone` : `no`/`partial`/`yes`, à mettre à jour au fil du build) ; `replica-diff` en fin de phase (score dans la PR). Correctifs issus des avis réels : `docs/replica/fixes.md`. On réplique les usages, jamais le nom, les icônes ni les textes de Samsung.
-- Fin de phase, avant la PR : `replica-diff`, `simplify`, `code-review`, `ponytail-debt`, `security-review`.
+- Fin de phase, avant la PR : `/fin-de-phase N` (enchaîne `replica-diff`, `simplify`, `code-review`, `ponytail-debt`, `security-review` et le bilan). Automatismes : `.githooks/pre-commit` lance pytest ; un hook Claude (`.claude/settings.json`) relance le test hors ligne après chaque édition de `plume/**.py`.
 - Tests pytest pour tout ce qui ne dépend pas du matériel (modèle, sérialisation, undo, formes, règle, PDF) ; ce qui dépend du stylet passe par les checklists manuelles (`docs/tests.md`).
