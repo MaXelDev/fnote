@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QAbstractScrollArea
 
 from ..controller.input_router import router
 from ..engine.pressure import PressureCurve
-from ..model.document import Page
+from ..model.document import Page, next_background
 from ..model.history import AddElements, AddPage, Command, History
 from . import style
 from .render import PageRenderer
@@ -30,6 +30,7 @@ SHARP_DELAY_MS = 140
 CACHE_KEEP = 3  # pages gardées en cache de part et d'autre de la zone visible
 
 _ERASER_POINTER = QPointingDevice.PointerType.Eraser
+TAP_S, TAP_MOVE_PX = 0.35, 8.0  # appui bref : durée max (s) et déplacement max (px)
 
 
 class Canvas(QAbstractScrollArea):
@@ -37,6 +38,7 @@ class Canvas(QAbstractScrollArea):
     zoomChanged = Signal(float)
     pageChanged = Signal(int)
     toolFinished = Signal()     # un geste vient de se terminer
+    imageTapped = Signal(int, object)  # appui bref sur une image (page, ImageItem) : à sélectionner
     pagesInvalidated = Signal(object)  # ensemble d'id de pages (None = toutes) : miniatures à refaire
     layoutChanged = Signal()    # pages ajoutées, supprimées ou déplacées
 
@@ -300,8 +302,8 @@ class Canvas(QAbstractScrollArea):
         self.history.push(AddElements(page.id, elements))
         grew = index == len(self.doc.pages) - 1
         if grew:  # on écrit sur la dernière page : une page vierge apparaît dessous
-            bg = page.background if page.background.get("kind") != "pdf" else {"kind": self.config.default_background}
-            self.history.push(AddPage(index + 1, Page(width=page.width, height=page.height, background=dict(bg))))
+            bg = next_background(page, self.config.default_background)
+            self.history.push(AddPage(index + 1, Page(width=page.width, height=page.height, background=bg)))
         self.history.end_group()
         self.bake(index, elements)
         self.end_live()
@@ -346,13 +348,33 @@ class Canvas(QAbstractScrollArea):
         if tool is None:
             return
         self._active = tool
+        self._press = (QPointF(pos), time.monotonic())
         tool.press(pos, pressure, t)
 
     def _finish(self, pos, pressure, t):
         tool, self._active = self._active, None
-        if tool is not None:
-            tool.release(pos, pressure, t)
-            self.toolFinished.emit()
+        if tool is None:
+            return
+        if getattr(tool, "tap_selects_images", False) and self._tap_on_image(pos):
+            tool.cancel()  # pas de point d'encre : l'appui servait à prendre l'image
+            return
+        tool.release(pos, pressure, t)
+        self.toolFinished.emit()
+
+    def _tap_on_image(self, pos: QPointF, start: QPointF | None = None, t0: float | None = None) -> bool:
+        """Appui bref et immobile sur une image : émet imageTapped et renvoie True."""
+        start, t0 = (start, t0) if start is not None else getattr(self, "_press", (None, 0.0))
+        if start is None or time.monotonic() - t0 > TAP_S:
+            return False
+        if math.hypot(pos.x() - start.x(), pos.y() - start.y()) > TAP_MOVE_PX:
+            return False
+        from ..controller.tools.lasso import image_at
+        index, pt = self.view_to_page(pos)
+        item = image_at(self.doc.pages[index], pt.x(), pt.y())
+        if item is None:
+            return False
+        self.imageTapped.emit(index, item)
+        return True
 
     # ================= peinture =================
     def paintEvent(self, event):
@@ -400,12 +422,22 @@ class Canvas(QAbstractScrollArea):
             self.viewport().update(int(q.x()) - 5, int(q.y()) - 5, 11, 11)
 
     # ================= entrées =================
+    def _over_child(self, pos: QPointF) -> bool:
+        """Vrai si pos tombe sur un widget posé sur la page (barre de sélection…)."""
+        return self.viewport().childAt(pos.toPoint()) is not None
+
     def viewportEvent(self, e):
         t = e.type()
         if t in (QEvent.Type.TabletPress, QEvent.Type.TabletMove, QEvent.Type.TabletRelease):
+            if self._active is None and t != QEvent.Type.TabletMove and self._over_child(e.position()):
+                e.ignore()  # le bouton recevra le clic synthétisé par Qt
+                return False
             self._tablet(e)
             return True
         if t in (QEvent.Type.TouchBegin, QEvent.Type.TouchUpdate, QEvent.Type.TouchEnd, QEvent.Type.TouchCancel):
+            if t == QEvent.Type.TouchBegin and self._active is None and self._over_child(e.points()[0].position()):
+                e.ignore()
+                return False
             self._touch_event(e)
             return True
         return super().viewportEvent(e)
@@ -497,16 +529,23 @@ class Canvas(QAbstractScrollArea):
             return
         pts = [p for p in e.points() if p.state() != p.State.Released] if e.type() != QEvent.Type.TouchEnd else []
         if e.type() in (QEvent.Type.TouchEnd, QEvent.Type.TouchCancel) or not pts:
-            if self._touch and self._touch.get("drawing") and self._active is not None:
-                self._finish(self._touch["last"], 0.5, float(e.timestamp()))
+            tc = self._touch
+            if tc and tc.get("drawing") and self._active is not None:
+                self._finish(tc["last"], 0.5, float(e.timestamp()))
+            elif tc and tc.get("n") == 1 and not tc.get("ruler") and e.type() == QEvent.Type.TouchEnd:
+                self._tap_on_image(tc["last"], tc["start"], tc["t0"])  # doigt : toucher une image la sélectionne
             self._touch = None
             return
         if len(pts) == 1:
             pos = pts[0].position()
             if self._touch is None or self._touch.get("n") != 1:
                 on_ruler = self.ruler.visible and self.ruler.geom.contains(pos.x(), pos.y())
-                drawing = self.config.finger_draws and self._active is None and not on_ruler
-                self._touch = {"n": 1, "last": pos, "drawing": drawing, "ruler": on_ruler}
+                # Un doigt sur une sélection du lasso la déplace / redimensionne (poignées larges).
+                on_selection = (self._active is None and not on_ruler and self.tool is not None
+                                and getattr(self.tool, "_hit", lambda _: None)(pos) is not None)
+                drawing = (self.config.finger_draws or on_selection) and self._active is None and not on_ruler
+                self._touch = {"n": 1, "last": pos, "drawing": drawing, "ruler": on_ruler,
+                               "start": QPointF(pos), "t0": time.monotonic()}
                 if drawing:
                     self._start(self.tool, pos, 0.5, float(e.timestamp()))
                 return

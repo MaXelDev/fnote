@@ -129,17 +129,18 @@ class MainWindow(QMainWindow):
 
     def _build_menus(self):
         m = self.menuBar().addMenu("&Fichier")
-        self._action(m, "Nouvelle note…", self.new_note, QKeySequence.StandardKey.New)
-        self._action(m, "Ouvrir…", self.open_dialog, QKeySequence.StandardKey.Open)
+        act_new = self._action(m, "Nouvelle note…", lambda: self.new_note(), QKeySequence.StandardKey.New)
+        act_tpl = self._action(m, "Nouvelle note avec un modèle PDF…", self.new_note_from_template, "Ctrl+Shift+N")
+        act_open = self._action(m, "Ouvrir…", self.open_dialog, QKeySequence.StandardKey.Open)
         self._action(m, "Enregistrer", self.save, QKeySequence.StandardKey.Save)
         m.addSeparator()
-        self._action(m, "Importer un PDF…", self.import_pdf_dialog, "Ctrl+Shift+I")
-        self._action(m, "Exporter en PDF…", self.export_pdf_dialog, "Ctrl+E")
+        act_import = self._action(m, "Importer un PDF…", self.import_pdf_dialog, "Ctrl+Shift+I")
+        act_export = self._action(m, "Exporter en PDF…", self.export_pdf_dialog, "Ctrl+E")
         m.addSeparator()
-        self._action(m, "Choisir le vault…", self.choose_vault)
-        self._action(m, "Paramètres…", self.show_settings, "Ctrl+,")
+        act_vault = self._action(m, "Choisir le vault…", self.choose_vault)
+        act_settings = self._action(m, "Paramètres…", self.show_settings, "Ctrl+,")
         m.addSeparator()
-        self._action(m, "Quitter", self.close, QKeySequence.StandardKey.Quit)
+        act_quit = self._action(m, "Quitter", self.close, QKeySequence.StandardKey.Quit)
         e = self.menuBar().addMenu("&Édition")
         self.act_undo = self._action(e, "Annuler", self.undo, QKeySequence.StandardKey.Undo)
         self.act_redo = self._action(e, "Rétablir", self.redo, "Ctrl+Y")
@@ -147,10 +148,10 @@ class MainWindow(QMainWindow):
         v = self.menuBar().addMenu("&Affichage")
         self._action(v, "Zoom avant", lambda: self._zoom(1.2), QKeySequence.StandardKey.ZoomIn)
         self._action(v, "Zoom arrière", lambda: self._zoom(1 / 1.2), QKeySequence.StandardKey.ZoomOut)
-        self._action(v, "Ajuster à la largeur", self.fit_width, "Ctrl+0")
-        self._action(v, "Plein écran", self.toggle_fullscreen, "F11")
+        act_fit = self._action(v, "Ajuster à la largeur", self.fit_width, "Ctrl+0")
+        act_full = self._action(v, "Plein écran", self.toggle_fullscreen, "F11")
         h = self.menuBar().addMenu("&Aide")
-        self._action(h, "Diagnostic du stylet…", self.show_tablet_debug)
+        act_debug = self._action(h, "Diagnostic du stylet…", self.show_tablet_debug)
         # Raccourcis des outils
         for i in range(len(self.config.favorites)):
             self.addAction(self._shortcut(str(i + 1), lambda i=i: self.tools.set_favorite(i)))
@@ -165,13 +166,17 @@ class MainWindow(QMainWindow):
         self._action(e, "Couper la sélection", lambda: self._selection("cut"), QKeySequence.StandardKey.Cut)
         self._action(e, "Dupliquer la sélection", lambda: self._selection("duplicate"), "Ctrl+D")
         self._action(e, "Supprimer la sélection", lambda: self._selection("delete"), QKeySequence.StandardKey.Delete)
-        self._action(e, "Insérer une image…", self.insert_image, "Ctrl+I")
+        act_image = self._action(e, "Insérer une image…", self.insert_image, "Ctrl+I")
         self.extra_actions["image"] = lambda tab: self.insert_image()
         self.extra_actions["ruler"] = self._toggle_ruler
-        # Menu compact (bouton « ⋮ » de la barre)
+        # Menu « ⋮ » de la barre : une seule liste à grandes lignes, sans sous-menu à survoler
+        # (utilisable au doigt en mode tablette). Les autres commandes restent au clavier.
         self.app_menu = QMenu(self)
-        for menu in (m, e, v, h):
-            self.app_menu.addMenu(menu)
+        self.app_menu.setObjectName("appMenu")
+        for group in ((act_new, act_tpl, act_open), (act_import, act_export, act_image),
+                      (act_fit, act_full), (act_settings, act_vault, act_debug), (act_quit,)):
+            self.app_menu.addActions(list(group))
+            self.app_menu.addSeparator()
 
     def _toolbar_action(self, name: str):
         tab = self.current_tab()
@@ -203,6 +208,17 @@ class MainWindow(QMainWindow):
         if tab and isinstance(tab.canvas.tool, LassoTool):
             return tab.canvas.tool
         return None
+
+    def _select_tapped(self, tab, index: int, item):
+        """Image touchée au stylet ou au doigt : sélection directe, puis retour à l'outil d'avant."""
+        previous = self.tools.mode
+        if previous != "lasso":
+            self.tools.set_mode("lasso")
+            self.toolbar.sync()
+        tool = tab.canvas.tool
+        tool.select([item], index)
+        if previous != "lasso":
+            tool.return_mode = previous
 
     def _selection(self, key: str):
         if (tool := self._lasso()) is not None:
@@ -304,8 +320,8 @@ class MainWindow(QMainWindow):
         self._update_title()
 
     def _welcome_action(self, key: str):
-        {"vault": self.choose_vault, "new": self.new_note, "open": self.open_dialog,
-         "import": self.import_pdf_dialog}[key]()
+        {"vault": self.choose_vault, "new": self.new_note, "template": self.new_note_from_template,
+         "open": self.open_dialog, "import": self.import_pdf_dialog}[key]()
 
     def show_settings(self):
         dlg = SettingsDialog(self.config, self)
@@ -347,7 +363,9 @@ class MainWindow(QMainWindow):
             self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
 
     # ----- notes -----
-    def new_note(self, folder: Path | None = None) -> None:
+    def new_note(self, folder: Path | None = None, template: Path | None = None) -> None:
+        """Nouvelle note : sur le PDF modèle choisi, sinon le modèle par défaut des Paramètres,
+        sinon une page au fond par défaut."""
         folder = folder or self.ensure_vault()
         if not folder:
             return
@@ -359,10 +377,28 @@ class MainWindow(QMainWindow):
         if path.exists():
             QMessageBox.warning(self, "Nom déjà pris", f"« {path.name} » existe déjà.")
             return
-        doc = Document(title=name)
-        doc.pages[0].background = {"kind": self.config.default_background}
+        template = template or (Path(self.config.note_template) if self.config.note_template else None)
+        if template is not None and template.is_file():
+            from ..pdf.importer import PdfImportError, template_document
+            try:
+                doc = template_document(template, name)
+            except (OSError, PdfImportError) as exc:
+                QMessageBox.warning(self, "Modèle PDF illisible",
+                                    f"« {template.name} » : {exc}\nLa note est créée sur une page simple.")
+                doc = None
+        else:
+            doc = None
+        if doc is None:
+            doc = Document(title=name)
+            doc.pages[0].background = {"kind": self.config.default_background}
         serialization.save(doc, path)
         self._add_tab(DocumentController(doc, path, self.config))
+
+    def new_note_from_template(self) -> None:
+        start = str(Path(self.config.note_template).parent if self.config.note_template else (self.vault() or Path.home()))
+        pdf, _ = QFileDialog.getOpenFileName(self, "Choisir un modèle PDF", start, "PDF (*.pdf)")
+        if pdf:
+            self.new_note(template=Path(pdf))
 
     def open_dialog(self) -> None:
         start = str(self.vault() or Path.home())
@@ -395,6 +431,7 @@ class MainWindow(QMainWindow):
         tab.titleChanged.connect(self._refresh_tab_titles)
         self._remember(ctl.path)
         tab.canvas.changed.connect(self._sync_undo)
+        tab.canvas.imageTapped.connect(lambda i, item, t=tab: self._select_tapped(t, i, item))
         if self.tabs.indexOf(self.empty) >= 0:
             self.tabs.removeTab(self.tabs.indexOf(self.empty))
         idx = self.tabs.addTab(tab, ctl.title)

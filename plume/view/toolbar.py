@@ -9,7 +9,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QSizePolicy, QToolBar, QToolButton, QWidget
 
 from . import icons, style
-from .popovers import EraserPopover, HighlighterPopover, PenPopover
+from .popovers import EraserPopover, HighlighterPopover, LassoPopover, PenPopover
 from .render import qcolor
 
 TIP_NAMES = {"fountain": "plume", "ballpoint": "bille", "pencil": "crayon"}
@@ -115,7 +115,7 @@ class Toolbar(QToolBar):
 
     def _mode_clicked(self, mode: str):
         if self.state.mode == mode:
-            pop = {"highlighter": HighlighterPopover, "eraser": EraserPopover}.get(mode)
+            pop = {"highlighter": HighlighterPopover, "eraser": EraserPopover, "lasso": LassoPopover}.get(mode)
             if pop:
                 self._open(pop(self.state), self.buttons[mode])
         else:
