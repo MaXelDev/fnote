@@ -76,3 +76,35 @@ def test_many_undos_unlimited():
     while h.can_undo:
         h.undo()
     assert doc.pages[0].ink == []
+
+
+def test_group_is_one_undo_step():
+    doc = Document()
+    h = History(doc)
+    pid = doc.pages[0].id
+    a, b = stroke(x=1), stroke(x=2)
+    h.push(AddElements(pid, [a, b]))
+    h.begin_group()
+    h.push(RemoveElements(pid, [a]))
+    h.push(RemoveElements(pid, [b]))
+    h.end_group()
+    assert doc.pages[0].ink == []
+    h.undo()
+    assert doc.pages[0].ink == [a, b]
+    h.redo()
+    assert doc.pages[0].ink == []
+
+
+def test_page_commands_and_revision():
+    from plume.model.history import MovePage, RemovePage, SetBackground
+    doc = Document(pages=[Page(), Page(), Page()])
+    first, second, third = doc.pages
+    h = History(doc)
+    rev = h.revision
+    h.push(MovePage(0, 2))
+    assert doc.pages == [second, third, first] and h.revision > rev
+    h.push(RemovePage(third))
+    assert doc.pages == [second, first]
+    h.push(SetBackground([first], {"kind": "grid"}))
+    h.undo(); h.undo(); h.undo()
+    assert doc.pages == [first, second, third] and first.background == {"kind": "blank"}
