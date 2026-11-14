@@ -40,6 +40,16 @@ def import_pdf(path: str | Path) -> Document:
     return Document(pages=pages, title=path.stem, source_pdf=data)
 
 
+def template_document(path: str | Path, title: str) -> Document:
+    """Nouvelle note sur un PDF modèle : ses pages servent de fond et se répètent
+    quand on ajoute des pages (contrairement à un PDF importé pour l'annoter)."""
+    doc = import_pdf(path)
+    doc.title = title
+    for page in doc.pages:
+        page.background["template"] = True
+    return doc
+
+
 def note_path_for(pdf_path: Path) -> Path:
     """« Cours.pdf » → « Cours (annoté).plume » : le PDF compagnon ne remplacera jamais l'original."""
     base = pdf_path.with_name(f"{pdf_path.stem} (annoté)")

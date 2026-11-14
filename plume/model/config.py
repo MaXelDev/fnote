@@ -46,6 +46,8 @@ class Config:
     shape_recognition: bool = True
     companion_pdf: bool = True
     autosave_delay_ms: int = 3000
+    lasso_mode: str = "free"  # free | rect
+    note_template: str = ""   # PDF modèle (feuille lignée, Cornell…) des nouvelles notes ; vide = fond simple
     x11_mode: bool = True   # XWayland : curseur toujours caché sous GNOME (pris en compte au redémarrage)
     recent_files: list[str] = field(default_factory=list)
     config_version: int = CONFIG_VERSION
