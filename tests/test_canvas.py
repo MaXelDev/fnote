@@ -212,3 +212,28 @@ def test_side_button_in_hover_only_arms_eraser():
     _tablet(c, "TabletRelease", (100, 150), 0.0, R, N)
     assert c.side_tool._pos is None
 
+
+def test_cursor_comes_back_only_on_real_mouse_motion():
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QMouseEvent, QPointingDevice
+    from plume.controller.input_router import InputRouter
+    r = InputRouter(app)
+    pad = QPointingDevice("pavé", 2, QPointingDevice.DeviceType.TouchPad, QPointingDevice.PointerType.Generic,
+                          QPointingDevice.Capability.Position, 1, 2)
+
+    def move(x):
+        ev = QMouseEvent(QEvent.Type.MouseMove, QPointF(x, 0), QPointF(x, 0), QPointF(x, 0), Qt.MouseButton.NoButton,
+                         Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier, pad)
+        r.eventFilter(app, ev)
+
+    try:
+        r.eventFilter(app, QEvent(QEvent.Type.TabletEnterProximity))
+        r.eventFilter(app, QEvent(QEvent.Type.TabletLeaveProximity))
+        move(300)  # faux mouvement envoyé par GNOME au départ du stylet
+        move(302)
+        assert r._cursor_hidden
+        move(340)  # vrai déplacement
+        assert not r._cursor_hidden
+    finally:
+        app.removeEventFilter(r)
+        r._show_cursor()

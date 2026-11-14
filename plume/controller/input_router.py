@@ -12,6 +12,7 @@ from PySide6.QtGui import QCursor, QInputDevice
 from PySide6.QtWidgets import QApplication
 
 PALM_GRACE_S = 0.5  # le tactile reste ignoré un instant après le départ du stylet
+MOUSE_WAKE_PX = 8.0  # la souris doit vraiment bouger pour faire revenir le curseur
 _PEN_EVENTS = {QEvent.Type.TabletPress, QEvent.Type.TabletMove, QEvent.Type.TabletRelease}
 
 
@@ -23,6 +24,7 @@ class InputRouter(QObject):
         self.pen_near = False
         self._pen_left_at = 0.0
         self._cursor_hidden = False
+        self._mouse_from = None  # position souris de référence depuis le dernier passage du stylet
         app.installEventFilter(self)
 
     # ----- état -----
@@ -51,6 +53,7 @@ class InputRouter(QObject):
         if t == QEvent.Type.TabletEnterProximity:
             self.pen_near = True
             self._hide_cursor()
+            self._mouse_from = None
             self.proximityChanged.emit(True)
         elif t == QEvent.Type.TabletLeaveProximity:
             self.pen_near = False
@@ -62,10 +65,19 @@ class InputRouter(QObject):
                 self.pen_near = True
                 self.proximityChanged.emit(True)
             self._hide_cursor()
+            self._mouse_from = None
+        elif t == QEvent.Type.Enter and obj.isWidgetType() and obj.isWindow():
+            self._mouse_from = None  # GNOME ramène la souris sous la pointe : nouvelle référence
         elif t == QEvent.Type.MouseMove and self._cursor_hidden and not self.pen_near:
             dev = event.pointingDevice()
             if dev is not None and dev.type() in (QInputDevice.DeviceType.Mouse, QInputDevice.DeviceType.TouchPad):
-                self._show_cursor()  # la vraie souris bouge : le curseur revient
+                # GNOME envoie un faux mouvement du pavé tactile quand le stylet s'éloigne :
+                # seul un vrai déplacement (distance depuis la première position vue) rend le curseur.
+                pos = event.globalPosition()
+                if self._mouse_from is None:
+                    self._mouse_from = pos
+                elif (pos - self._mouse_from).manhattanLength() > MOUSE_WAKE_PX:
+                    self._show_cursor()
         return False
 
 
