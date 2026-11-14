@@ -26,7 +26,11 @@ class NoteTab(QWidget):
     def __init__(self, ctl: DocumentController, tools: ToolState, debug_perf=False):
         super().__init__()
         self.ctl, self.tools = ctl, tools
-        self.canvas = Canvas(ctl.doc, ctl.history, ctl.config, debug_perf=debug_perf)
+        pdf = None
+        if ctl.doc.source_pdf:
+            from ..pdf.source import PdfSource
+            pdf = PdfSource(ctl.doc.source_pdf)
+        self.canvas = Canvas(ctl.doc, ctl.history, ctl.config, pdf_source=pdf, debug_perf=debug_perf)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.canvas)
@@ -49,6 +53,10 @@ class MainWindow(QMainWindow):
         self.tools = ToolState(config)
         self.tools.changed.connect(self._tools_changed)
         self.extra_actions = {}  # actions de barre ajoutées par d'autres modules : nom → f(onglet)
+        from ..pdf.companion import CompanionExporter
+        self.companion = CompanionExporter(self)
+        self.companion.failed.connect(lambda msg: self.statusBar().showMessage(f"Export PDF compagnon impossible : {msg}", 8000))
+        self.companion.skipped.connect(lambda msg: self.statusBar().showMessage(msg, 8000))
         self.resize(1200, 860)
 
         self.tabs = QTabWidget()
@@ -103,6 +111,9 @@ class MainWindow(QMainWindow):
         self._action(m, "Nouvelle note…", self.new_note, QKeySequence.StandardKey.New)
         self._action(m, "Ouvrir…", self.open_dialog, QKeySequence.StandardKey.Open)
         self._action(m, "Enregistrer", self.save, QKeySequence.StandardKey.Save)
+        m.addSeparator()
+        self._action(m, "Importer un PDF…", self.import_pdf_dialog, "Ctrl+Shift+I")
+        self._action(m, "Exporter en PDF…", self.export_pdf_dialog, "Ctrl+E")
         m.addSeparator()
         self._action(m, "Choisir le vault…", self.choose_vault)
         m.addSeparator()
@@ -301,6 +312,7 @@ class MainWindow(QMainWindow):
     def _add_tab(self, ctl: DocumentController) -> NoteTab:
         ctl.setParent(self)
         ctl.saveFailed.connect(lambda msg: QMessageBox.critical(self, "Échec de l'enregistrement", msg))
+        ctl.after_save.append(self._export_companion)
         tab = NoteTab(ctl, self.tools, self.debug_perf)
         tab.titleChanged.connect(self._refresh_tab_titles)
         tab.canvas.changed.connect(self._sync_undo)
@@ -329,6 +341,53 @@ class MainWindow(QMainWindow):
         if not self.note_tabs():
             self.tabs.addTab(self.empty, "Accueil")
             self.tabs.tabBar().setTabButton(0, self.tabs.tabBar().ButtonPosition.RightSide, None)
+
+    # ----- PDF -----
+    def _export_companion(self, ctl):
+        if self.config.companion_pdf:
+            from ..engine.pressure import PressureCurve
+            tab = next((t for t in self.note_tabs() if t.ctl is ctl), None)
+            curve = tab.canvas.curve if tab is not None else PressureCurve(self.config.pressure_curve)
+            self.companion.export(ctl, curve)
+
+    def import_pdf_dialog(self) -> None:
+        start = str(self.vault() or Path.home())
+        path, _ = QFileDialog.getOpenFileName(self, "Importer un PDF", start, "PDF (*.pdf)")
+        if path:
+            self.import_pdf(Path(path))
+
+    def import_pdf(self, pdf_path: Path, folder: Path | None = None) -> None:
+        """Crée « Nom (annoté).plume » (dans le vault si le PDF est hors du vault) et l'ouvre."""
+        from ..pdf.importer import PdfImportError, import_pdf, note_path_for
+        try:
+            doc = import_pdf(pdf_path)
+        except (OSError, PdfImportError) as exc:
+            QMessageBox.critical(self, "Import impossible", f"{pdf_path.name} : {exc}")
+            return
+        vault = self.vault()
+        inside = vault is not None and Path(pdf_path).resolve().is_relative_to(vault.resolve())
+        target_dir = folder or (Path(pdf_path).parent if inside or vault is None else vault)
+        path = note_path_for(target_dir / Path(pdf_path).name)
+        doc.title = path.stem
+        serialization.save(doc, path)
+        self._add_tab(DocumentController(doc, path, self.config))
+        self.statusBar().showMessage(f"PDF importé : {path.name}", 4000)
+
+    def export_pdf_dialog(self) -> None:
+        tab = self.current_tab()
+        if tab is None:
+            return
+        from ..pdf.exporter import export_to_file
+        default = str(tab.ctl.path.with_suffix(".pdf"))
+        path, _ = QFileDialog.getSaveFileName(self, "Exporter en PDF", default, "PDF (*.pdf)")
+        if not path:
+            return
+        try:
+            export_to_file(tab.ctl.doc, tab.canvas.curve, Path(path))
+        except Exception as exc:  # export : on montre l'erreur, rien n'est perdu
+            QMessageBox.critical(self, "Export impossible", str(exc))
+            return
+        self.statusBar().showMessage(f"Exporté : {Path(path).name}", 4000)
 
     def save(self) -> None:
         if tab := self.current_tab():

@@ -98,11 +98,11 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 | Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
 |---|---|---|---|---|---|
-| Import PDF (une page = une page avec fond PDF) | pdf | must | yes | no |  |
-| Insérer des pages vierges entre pages PDF | pdf | must | yes | no |  |
-| Export PDF vectoriel (texte d'origine sélectionnable) | pdf | must | partial | no | Samsung aplatit parfois |
-| Export PDF d'une note sans PDF source | pdf | must | yes | no |  |
-| Export compagnon NomDeLaNote.pdf pour Obsidian | fichiers | must | no | no | spécifique Plume |
+| Import PDF (une page = une page avec fond PDF) | pdf | must | yes | yes |  |
+| Insérer des pages vierges entre pages PDF | pdf | must | yes | yes |  |
+| Export PDF vectoriel (texte d'origine sélectionnable) | pdf | must | partial | yes | Samsung aplatit parfois |
+| Export PDF d'une note sans PDF source | pdf | must | yes | yes |  |
+| Export compagnon NomDeLaNote.pdf pour Obsidian | fichiers | must | no | yes | spécifique Plume |
 
 ## Phase 6 — Confort et finition
 

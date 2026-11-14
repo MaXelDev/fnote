@@ -70,3 +70,16 @@ def test_color_palette_recent(window):
     pal.colorPicked.connect(got.append)
     pal._pick("#1f5fd1")
     assert got == ["#1f5fd1ff"] and window.config.recent_colors[0] == "#1f5fd1ff"
+
+
+def test_import_pdf_creates_annotated_note(window, tmp_path):
+    import pymupdf
+    d = pymupdf.open()
+    d.new_page().insert_text((72, 72), "Sujet de TD")
+    d.save(tmp_path / "TD1.pdf")
+    window.import_pdf(tmp_path / "TD1.pdf")
+    tab = window.current_tab()
+    assert tab.ctl.path.name == "TD1 (annoté).plume" and tab.canvas.renderer.pdf_source is not None
+    assert (tmp_path / "TD1.pdf").exists()
+    img = tab.canvas.renderer.render_page(tab.ctl.doc.pages[0], 0.5)
+    assert not img.isNull()

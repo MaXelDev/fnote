@@ -55,11 +55,11 @@ Règle déplaçable et pivotable deux doigts / poignée,règle,must,no,yes,phase
 Règle : angle affiché + aimantation 0/15/30/45/90°,règle,must,no,yes,phase 4
 Trait aimanté au bord de la règle (stylo et surligneur),règle,must,no,yes,phase 4
 Graduations en cm,règle,should,no,yes,phase 4
-Import PDF (une page = une page avec fond PDF),pdf,must,yes,no,phase 5
-Insérer des pages vierges entre pages PDF,pdf,must,yes,no,phase 5
-Export PDF vectoriel (texte d'origine sélectionnable),pdf,must,partial,no,phase 5 ; Samsung aplatit parfois
-Export PDF d'une note sans PDF source,pdf,must,yes,no,phase 5
-Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,no,phase 5 ; spécifique Plume
+Import PDF (une page = une page avec fond PDF),pdf,must,yes,yes,phase 5
+Insérer des pages vierges entre pages PDF,pdf,must,yes,yes,phase 5
+Export PDF vectoriel (texte d'origine sélectionnable),pdf,must,partial,yes,phase 5 ; Samsung aplatit parfois
+Export PDF d'une note sans PDF source,pdf,must,yes,yes,phase 5
+Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,yes,phase 5 ; spécifique Plume
 Panneau arborescence du vault (.plume + .pdf),notes,must,partial,no,phase 6 ; Samsung a des dossiers internes
 Créer / renommer / déplacer des notes et dossiers,notes,must,yes,no,phase 6
 Supprimer vers la corbeille système,notes,must,yes,no,phase 6
