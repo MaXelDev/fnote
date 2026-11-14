@@ -69,3 +69,48 @@ def test_scribble_and_tiny_rejected():
     zig = [(i * 3, (i % 2) * 40 + rng.normal(0, 8)) for i in range(60)]
     assert recognize(pts(zig, 0)) is None
     assert recognize(pts([(0, 0), (1, 1), (2, 1), (2, 2), (3, 3)], 0)) is None
+
+
+def _start_mid_edge(vertices, per_edge=25):
+    """Forme fermée commencée au milieu du premier côté, avec léger dépassement à la fin."""
+    ring = polyline(vertices, per_edge, close=True)
+    half = per_edge // 2
+    return ring[half:] + ring[1:half + 4]
+
+
+@pytest.mark.parametrize("vertices,kind", [
+    ([(0, 0), (200, 0), (200, 120), (0, 120)], "rect"),
+    ([(0, 100), (60, 0), (120, 100)], "triangle"),
+    ([(100, 0), (200, 100), (100, 200), (0, 100)], "rect"),  # carré posé sur la pointe
+    ([(100, 0), (180, 120), (100, 240), (20, 120)], "polygon"),  # losange
+])
+def test_closed_shape_started_mid_edge(vertices, kind):
+    got = recognize(pts(_start_mid_edge(vertices), noise=1.2))
+    assert got is not None and got[0] == kind
+
+
+@pytest.mark.parametrize("n", [5, 6])
+def test_regular_polygons(n):
+    a = [2 * math.pi * k / n - math.pi / 2 for k in range(n)]
+    v = [(150 + 100 * math.cos(t), 150 + 100 * math.sin(t)) for t in a]
+    kind, g = recognize(pts(polyline(v, close=True), noise=1.0))
+    assert kind == "polygon" and len(g) == n
+
+
+def test_robustness_hand_drawn():
+    """Formes tremblées, départ n'importe où : au moins 9 sur 10 reconnues correctement."""
+    ok = total = 0
+    for trial in range(40):
+        for vertices, kind in (([(0, 0), (180, 0), (180, 110), (0, 110)], "rect"),
+                               ([(0, 100), (70, 0), (140, 100)], "triangle")):
+            ring = polyline(vertices, 30, close=True)
+            start = int(rng.integers(0, len(ring) - 1))
+            stroke = ring[start:] + ring[1:start + 1]
+            got = recognize(pts(stroke, noise=1.8))
+            total += 1
+            ok += got is not None and got[0] == kind
+        a = np.linspace(0, 2 * math.pi * 1.04, 120) + rng.uniform(0, 2 * math.pi)
+        got = recognize(pts(np.column_stack([90 * np.cos(a), 60 * np.sin(a)]), noise=1.8))
+        total += 1
+        ok += got is not None and got[0] == "ellipse"
+    assert ok / total >= 0.9, f"{ok}/{total}"

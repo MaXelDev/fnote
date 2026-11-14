@@ -22,7 +22,7 @@ from ...view.render import qcolor, shape_path
 from .base import Tool
 
 HOLD_MS = 500
-HOLD_TOLERANCE_PX = 3.0
+HOLD_TOLERANCE_PX = 6.0  # tremblement toléré pendant le maintien (le S Pen bouge de quelques px)
 
 
 class InkTool(Tool):

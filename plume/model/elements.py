@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass, field
 
 TOOLS = ("fountain", "ballpoint", "pencil", "highlighter")
-SHAPE_KINDS = ("line", "rect", "ellipse", "triangle", "arrow")
+SHAPE_KINDS = ("line", "rect", "ellipse", "triangle", "arrow", "polygon")
 
 
 def new_id() -> str:

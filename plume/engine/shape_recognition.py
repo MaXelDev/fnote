@@ -1,7 +1,8 @@
-"""Reconnaissance de formes : trait à main levée → ligne, rectangle, ellipse/cercle, triangle, flèche.
+"""Reconnaissance de formes : trait à main levée → ligne, flèche, triangle, rectangle,
+polygone (losange, pentagone, hexagone…), ellipse/cercle.
 
 recognize(points) renvoie (kind, geometry) ou None. geometry suit le format de Shape :
-ligne/flèche = [début, fin] ; rectangle = 4 sommets ; triangle = 3 sommets ;
+ligne/flèche = [début, fin] ; rectangle = 4 sommets ; triangle / polygone = ses sommets ;
 ellipse = 4 coins de son rectangle englobant (éventuellement pivoté).
 """
 from __future__ import annotations
@@ -94,13 +95,13 @@ def _ellipse(xy) -> tuple[float, list] | None:
 
 
 def _rectangle(xy, verts) -> list | None:
-    v = xy[verts]
+    v = xy[list(verts)]
     edges = np.roll(v, -1, axis=0) - v
     # angles internes proches de 90°
     for i in range(4):
         e1, e2 = edges[i - 1], edges[i]
         cosang = abs(np.dot(e1, e2)) / (np.linalg.norm(e1) * np.linalg.norm(e2) + 1e-9)
-        if cosang > 0.42:  # > ~25° d'écart avec l'angle droit
+        if cosang > 0.26:  # > ~15° d'écart avec l'angle droit : losange, parallélogramme…
             return None
     longest = edges[np.argmax(np.linalg.norm(edges, axis=1))]
     theta = _snap_angle(math.atan2(longest[1], longest[0]))
@@ -156,7 +157,7 @@ def recognize(points):
     if diag < MIN_SIZE:
         return None
     gap = float(np.linalg.norm(xy[-1] - xy[0]))
-    closed = gap < 0.2 * diag
+    closed = gap < 0.25 * diag
 
     if not closed:
         chord = gap
@@ -167,15 +168,65 @@ def recognize(points):
             return "line", [tuple(map(float, a)), tuple(map(float, b))]
         return _arrow(xy, diag)
 
+    xy = _trim_overshoot(xy)
+    # On repart du point le plus éloigné du centre (un vrai coin) : le départ et l'arrivée du
+    # trait, souvent tremblés, ne créent plus de faux coin.
+    xy = np.roll(xy, -int(np.argmax(np.linalg.norm(xy - xy.mean(axis=0), axis=1))), axis=0)
     ring = np.vstack([xy, xy[:1]])
-    idx = _dp(ring, 0.06 * diag)[:-1]  # sommets (le dernier = premier)
-    if len(idx) == 3:
-        return "triangle", [tuple(map(float, ring[i])) for i in idx]
-    if len(idx) == 4:
-        rect = _rectangle(ring, idx)
+    verts = _corners(ring, diag)
+    ell = _ellipse(xy)
+    poly_fit = _poly_dev(xy, ring[verts]) / diag if 3 <= len(verts) <= MAX_SIDES else float("inf")
+    if ell is not None and ell[0] < 0.22 and (len(verts) > MAX_SIDES or poly_fit > 0.035 or ell[0] < 0.06):
+        return "ellipse", ell[1]
+    if poly_fit > 0.06:
+        return None
+    pts = ring[verts]
+    if len(verts) == 3:
+        return "triangle", [tuple(map(float, q)) for q in pts]
+    if len(verts) == 4:
+        rect = _rectangle(ring, verts)
         if rect is not None:
             return "rect", rect
-    ell = _ellipse(xy)
-    if ell is not None and ell[0] < 0.22 and len(idx) >= 5:
-        return "ellipse", ell[1]
-    return None
+    return "polygon", [tuple(map(float, q)) for q in pts]
+
+
+MAX_SIDES = 8
+
+
+def _trim_overshoot(xy: np.ndarray) -> np.ndarray:
+    """Coupe ce qui dépasse quand on referme la forme en repassant au-delà du départ."""
+    n = len(xy)
+    tail = xy[n // 2:]
+    d = np.linalg.norm(tail - xy[0], axis=1)
+    k = int(np.argmin(d))
+    return xy[:n // 2 + k + 1] if k < len(tail) - 1 else xy
+
+
+def _corners(ring: np.ndarray, diag: float) -> list[int]:
+    """Coins de la forme : Douglas-Peucker, puis on retire les points presque alignés
+    (départ au milieu d'un côté) et les côtés minuscules (tremblement près d'un coin)."""
+    idx = list(_dp(ring, 0.05 * diag)[:-1])
+    changed = True
+    while changed and len(idx) > 3:
+        changed = False
+        n = len(idx)
+        for j in range(n):
+            a, b, c = ring[idx[j - 1]], ring[idx[j]], ring[idx[(j + 1) % n]]
+            e1, e2 = b - a, c - b
+            l1, l2 = np.linalg.norm(e1), np.linalg.norm(e2)
+            turn = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(e1, e2) / (l1 * l2 + 1e-9))))))
+            if turn < 28 or min(l1, l2) < 0.08 * diag:
+                del idx[j]
+                changed = True
+                break
+    return idx
+
+
+def _poly_dev(xy: np.ndarray, pts: np.ndarray) -> float:
+    """Écart moyen (RMS) des points du trait au contour du polygone."""
+    best = np.full(len(xy), np.inf)
+    for a, b in zip(pts, np.roll(pts, -1, axis=0)):
+        seg = b - a
+        t = np.clip(((xy - a) @ seg) / (seg @ seg + 1e-12), 0, 1)
+        best = np.minimum(best, np.linalg.norm(xy - (a + t[:, None] * seg), axis=1))
+    return float(np.sqrt(np.mean(best ** 2)))

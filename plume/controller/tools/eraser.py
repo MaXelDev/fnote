@@ -25,7 +25,7 @@ def shape_polyline(s: Shape) -> np.ndarray:
         u, v = (g[1] - g[0]) / 2, (g[3] - g[0]) / 2
         a = np.linspace(0, 2 * math.pi, 48)
         return c + np.outer(np.cos(a), u) + np.outer(np.sin(a), v)
-    if s.kind in ("rect", "triangle"):
+    if s.kind in ("rect", "triangle", "polygon"):
         return np.vstack([g, g[:1]])
     return g
 
