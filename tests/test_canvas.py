@@ -125,3 +125,47 @@ def test_paint_does_not_crash():
     c.viewport().repaint()
     img = c.viewport().grab()
     assert not img.isNull()
+
+
+def test_hold_converts_stroke_to_shape():
+    c = make()
+    pen = InkTool(c, PEN)
+    r = c.page_rect(0)
+    corners = [(100, 100), (300, 100), (300, 220), (100, 220), (100, 100)]
+    pts = []
+    for (ax, ay), (bx, by) in zip(corners, corners[1:]):
+        pts += [(ax + (bx - ax) * k / 20, ay + (by - ay) * k / 20) for k in range(20)]
+    pts = [(r.x() + x, r.y() + y) for x, y in pts]
+    pen.press(QPointF(*pts[0]), .5, 0)
+    for i, p in enumerate(pts[1:]):
+        pen.move(QPointF(*p), .5, i)
+    pen._on_hold()  # le minuteur de maintien a expiré
+    pen.release(QPointF(*pts[-1]), .5, 999)
+    page = c.doc.pages[0]
+    assert len(page.shapes) == 1 and page.shapes[0].kind == "rect" and page.ink == []
+    assert page.shapes[0].color == PEN["color"]
+
+
+def test_stroke_snaps_to_ruler_edge():
+    c = make()
+    c.ruler.toggle()
+    g = c.ruler.geom
+    g.angle = 0.0
+    edge_y = g.cy - g.thickness / 2
+    pen = InkTool(c, PEN)
+    pts = [(g.cx - 150 + i * 10, edge_y - 6 + (i % 3)) for i in range(30)]
+    draw(c, pen, pts)
+    s = c.doc.pages[c.view_to_page(QPointF(g.cx, edge_y))[0]].ink[-1]
+    ys = {round(p[1], 6) for p in s.points}
+    assert len(ys) == 1  # parfaitement droit, collé au bord
+
+
+def test_ruler_body_drag_moves_ruler():
+    c = make()
+    c.ruler.toggle()
+    g = c.ruler.geom
+    x0 = g.cx
+    c._start(InkTool(c, PEN), QPointF(g.cx - 100, g.cy), .5, 0)  # appui au milieu du corps
+    c._active.move(QPointF(g.cx - 60, g.cy), .5, 1)
+    c._finish(QPointF(g.cx - 60, g.cy), .5, 2)
+    assert abs(g.cx - (x0 + 40)) < 1e-6 and all(not p.ink for p in c.doc.pages)
