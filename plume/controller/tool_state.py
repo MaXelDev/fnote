@@ -5,6 +5,7 @@ from PySide6.QtCore import QObject, Signal
 
 from .tools.eraser import EraserTool
 from .tools.ink import InkTool
+from .tools.lasso import LassoTool
 
 MODES = ("pen", "highlighter", "eraser", "lasso")
 
@@ -53,6 +54,8 @@ class ToolState(QObject):
             return InkTool(canvas, self.config.highlighter)
         if mode == "eraser":
             return EraserTool(canvas, self.config.eraser)
+        if mode == "lasso":
+            return LassoTool(canvas, self)
         return InkTool(canvas, self.pen_spec)
 
     def make_side_tool(self, canvas):

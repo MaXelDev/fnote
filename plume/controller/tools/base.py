@@ -20,6 +20,9 @@ class Tool:
     def cancel(self) -> None:
         """Interrompt le geste en cours sans rien valider."""
 
+    def dispose(self) -> None:
+        """L'outil est remplacé : libérer sélection et widgets."""
+
     def paint_overlay(self, painter: QPainter) -> None:
         """Dessin par-dessus les pages (aperçu, sélection, gomme)."""
 
