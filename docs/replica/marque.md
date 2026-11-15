@@ -19,7 +19,7 @@ Couleur de marque **bleu-vert « encre »** `#26686c` (sombre : `#7cc4c7`), fami
 
 ## Logo
 
-`fnote/resources/fnote.svg` — création originale : une page lignée portant un trait manuscrit bleu, et une plume jaune à pointe noire, sur un carré arrondi bleu-vert.
+`fnote/resources/fnote.svg` — création originale : une pointe de stylo-plume blanche qui laisse un trait d'encre jaune, sur un carré arrondi bleu-vert (couleur d'accent de l'appli). Lisible dès 16 px.
 Lisible à 16 px (silhouette page + fnote), vectoriel pour toutes les tailles. Aucune forme, paire de couleurs ni lettre empruntée à l'original. Les icônes d'outils sont dessinées en code (`fnote/view/icons.py`), sans jeu d'icônes tiers.
 
 ## Ton
