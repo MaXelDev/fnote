@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fnote"
-version = "1.2.0"
+version = "1.2.1"
 description = "Prise de notes manuscrites au stylet pour Fedora/Wayland, 100 % locale"
 readme = "README.md"
 license = "MIT"
