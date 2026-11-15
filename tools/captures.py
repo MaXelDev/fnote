@@ -17,14 +17,14 @@ from PySide6.QtWidgets import QApplication
 
 app = QApplication([])
 
-from plume.controller.document_controller import DocumentController  # noqa: E402
-from plume.controller.tools.ink import InkTool  # noqa: E402
-from plume.controller.tools.lasso import LassoTool  # noqa: E402
-from plume.model import serialization  # noqa: E402
-from plume.model.config import Config  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.view import style  # noqa: E402
-from plume.view.main_window import MainWindow  # noqa: E402
+from fnote.controller.document_controller import DocumentController  # noqa: E402
+from fnote.controller.tools.ink import InkTool  # noqa: E402
+from fnote.controller.tools.lasso import LassoTool  # noqa: E402
+from fnote.model import serialization  # noqa: E402
+from fnote.model.config import Config  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.view import style  # noqa: E402
+from fnote.view.main_window import MainWindow  # noqa: E402
 
 style.apply(app)
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/screenshots")
@@ -81,7 +81,7 @@ def save(w, name):
 
 # 1. Note de cours manuscrite
 w = window()
-path = vault / "Analyse" / "Intégrales généralisées.plume"
+path = vault / "Analyse" / "Intégrales généralisées.fnote"
 doc = Document(pages=[Page(background={"kind": "lined"}), Page(background={"kind": "lined"})])
 serialization.save(doc, path)
 tab = w._add_tab(DocumentController(doc, path, cfg))
@@ -122,7 +122,7 @@ save(w, "pdf.png")
 w.pages_dock.hide()
 
 # 3. Règle et formes
-path = vault / "Réseaux" / "Topologies.plume"
+path = vault / "Réseaux" / "Topologies.fnote"
 doc = Document(pages=[Page(background={"kind": "grid"})])
 serialization.save(doc, path)
 tab = w._add_tab(DocumentController(doc, path, cfg))

@@ -31,6 +31,7 @@ CACHE_KEEP = 3  # pages gardées en cache de part et d'autre de la zone visible
 
 _ERASER_POINTER = QPointingDevice.PointerType.Eraser
 TAP_S, TAP_MOVE_PX = 0.35, 8.0  # appui bref : durée max (s) et déplacement max (px)
+LONG_PRESS_MS = 1000  # appui long immobile : menu contextuel
 
 
 class Canvas(QAbstractScrollArea):
@@ -39,6 +40,7 @@ class Canvas(QAbstractScrollArea):
     pageChanged = Signal(int)
     toolFinished = Signal()     # un geste vient de se terminer
     imageTapped = Signal(int, object)  # appui bref sur une image (page, ImageItem) : à sélectionner
+    longPressed = Signal(int, object, QPointF)  # appui long : (page, élément touché ou None, position vue)
     pagesInvalidated = Signal(object)  # ensemble d'id de pages (None = toutes) : miniatures à refaire
     layoutChanged = Signal()    # pages ajoutées, supprimées ou déplacées
 
@@ -78,6 +80,9 @@ class Canvas(QAbstractScrollArea):
         self.horizontalScrollBar().setSingleStep(40)
 
         self._sharp_timer = QTimer(self, singleShot=True, interval=SHARP_DELAY_MS, timeout=self._sharpen_next)
+        self._long = QTimer(self, singleShot=True, interval=LONG_PRESS_MS, timeout=self._on_long_press)
+        self._long_at = QPointF()
+        self._held = False  # appui long servi : le contact en cours ne dessine plus rien
         self.ruler = Ruler(self)
         self.overlays.append(self.ruler)
         self._relayout()
@@ -349,9 +354,16 @@ class Canvas(QAbstractScrollArea):
             return
         self._active = tool
         self._press = (QPointF(pos), time.monotonic())
+        if getattr(tool, "long_press_menu", False) and getattr(tool, "_hit", lambda _: None)(pos) is None:
+            self._long_start(pos)
         tool.press(pos, pressure, t)
 
+    def _move(self, pos, pressure, t):
+        self._long_track(pos)
+        self._active.move(pos, pressure, t)
+
     def _finish(self, pos, pressure, t):
+        self._long.stop()
         tool, self._active = self._active, None
         if tool is None:
             return
@@ -360,6 +372,27 @@ class Canvas(QAbstractScrollArea):
             return
         tool.release(pos, pressure, t)
         self.toolFinished.emit()
+
+    # ----- appui long -----
+    def _long_start(self, pos: QPointF):
+        self._long_at = QPointF(pos)
+        self._long.start()
+
+    def _long_track(self, pos: QPointF):
+        if self._long.isActive() and math.hypot(pos.x() - self._long_at.x(), pos.y() - self._long_at.y()) > TAP_MOVE_PX:
+            self._long.stop()
+
+    def _on_long_press(self):
+        """Stylet ou doigt immobile ~1 s : on annule le geste (pas de point d'encre) et on ouvre le menu."""
+        self._cancel_gesture()
+        self._held = True
+        if self._touch is not None:
+            self._touch.update(drawing=False, held=True)
+        self._show_hover(None)
+        index, pt = self.view_to_page(self._long_at)
+        from ..controller.tools.lasso import element_at
+        item = element_at(self.doc.pages[index], pt.x(), pt.y(), 10.0 / self.zoom)
+        self.longPressed.emit(index, item, QPointF(self._long_at))
 
     def _tap_on_image(self, pos: QPointF, start: QPointF | None = None, t0: float | None = None) -> bool:
         """Appui bref et immobile sur une image : émet imageTapped et renvoie True."""
@@ -450,11 +483,16 @@ class Canvas(QAbstractScrollArea):
         side = self.side_tool is not None and (e.pointingDevice().pointerType() == _ERASER_POINTER
                                                or bool(e.buttons() & ~Qt.MouseButton.LeftButton))
         tip = e.button() == Qt.MouseButton.LeftButton
+        if self._held and t_ != QEvent.Type.TabletPress:  # appui long servi : rien jusqu'au lever du stylet
+            if t_ == QEvent.Type.TabletRelease or not e.buttons():
+                self._held = False
+            return
+        self._held = False
         if t_ == QEvent.Type.TabletPress and tip and self._active is None:
             self._set_hover(None)
             self._start(self.side_tool if side else self.tool, pos, pressure, t)
         elif t_ == QEvent.Type.TabletMove and self._active is not None:
-            self._active.move(pos, pressure, t)
+            self._move(pos, pressure, t)
         elif t_ == QEvent.Type.TabletMove and e.buttons() & Qt.MouseButton.LeftButton and pressure > 0:
             self._set_hover(None)  # contact sans TabletPress (certains pilotes) : on démarre ici
             self._start(self.side_tool if side else self.tool, pos, pressure, t)
@@ -499,13 +537,14 @@ class Canvas(QAbstractScrollArea):
         if router().mouse_blocked():
             return
         if self._active is not None:
-            self._active.move(e.position(), 0.5, float(e.timestamp()))
+            self._move(e.position(), 0.5, float(e.timestamp()))
         elif e.buttons() & Qt.MouseButton.MiddleButton and getattr(self, "_pan_from", None) is not None:
             d = e.position() - self._pan_from
             self._pan_from = e.position()
             self._scroll_by(-d.x(), -d.y())
 
     def mouseReleaseEvent(self, e):
+        self._held = False
         if self._active is not None:
             self._finish(e.position(), 0.5, float(e.timestamp()))
         self._pan_from = None
@@ -529,10 +568,12 @@ class Canvas(QAbstractScrollArea):
             return
         pts = [p for p in e.points() if p.state() != p.State.Released] if e.type() != QEvent.Type.TouchEnd else []
         if e.type() in (QEvent.Type.TouchEnd, QEvent.Type.TouchCancel) or not pts:
+            self._long.stop()
+            self._held = False
             tc = self._touch
             if tc and tc.get("drawing") and self._active is not None:
                 self._finish(tc["last"], 0.5, float(e.timestamp()))
-            elif tc and tc.get("n") == 1 and not tc.get("ruler") and e.type() == QEvent.Type.TouchEnd:
+            elif tc and tc.get("n") == 1 and not tc.get("ruler") and not tc.get("held") and e.type() == QEvent.Type.TouchEnd:
                 self._tap_on_image(tc["last"], tc["start"], tc["t0"])  # doigt : toucher une image la sélectionne
             self._touch = None
             return
@@ -548,10 +589,15 @@ class Canvas(QAbstractScrollArea):
                                "start": QPointF(pos), "t0": time.monotonic()}
                 if drawing:
                     self._start(self.tool, pos, 0.5, float(e.timestamp()))
+                elif not on_ruler:
+                    self._long_start(pos)  # doigt qui fait défiler : l'appui long ouvre aussi le menu
                 return
+            if self._touch.get("held"):
+                return
+            self._long_track(pos)
             if self._touch["drawing"]:
                 if self._active is not None:
-                    self._active.move(pos, 0.5, float(e.timestamp()))
+                    self._move(pos, 0.5, float(e.timestamp()))
             elif self._touch.get("ruler"):
                 d = pos - self._touch["last"]
                 self.ruler.translate(d.x(), d.y())
@@ -567,6 +613,7 @@ class Canvas(QAbstractScrollArea):
         dist = max(1.0, math.hypot(a.x() - b.x(), a.y() - b.y()))
         angle = math.degrees(math.atan2(b.y() - a.y(), b.x() - a.x()))
         if self._touch is None or self._touch.get("n") != 2:
+            self._long.stop()
             if self._touch and self._touch.get("drawing"):
                 self._cancel_gesture()
             on_ruler = self.ruler.visible and self.ruler.geom.contains(center.x(), center.y())

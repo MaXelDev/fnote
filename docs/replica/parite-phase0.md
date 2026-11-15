@@ -9,7 +9,7 @@ Date : 2026-11-14. Aucune comparaison de captures (pas de capture de l'original 
 
 ## Fait en phase 0
 
-Propre à Plume (hors score) : format `.plume` versionné, sauvegarde atomique, lecture sécurisée (liste blanche, plafonds de taille, validation), paramètres XDG, fenêtre `--debug-tablet` (pression, proximité, fréquence, échelle, décalage stylet/pointeur), garde-fou « aucun import réseau ».
+Propre à FNote (hors score) : format `.fnote` versionné, sauvegarde atomique, lecture sécurisée (liste blanche, plafonds de taille, validation), paramètres XDG, fenêtre `--debug-tablet` (pression, proximité, fréquence, échelle, décalage stylet/pointeur), garde-fou « aucun import réseau ».
 Partiel : plein écran F11, thème suivant le système.
 
 ## Les cinq prochaines priorités (phase 1)

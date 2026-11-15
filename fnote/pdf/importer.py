@@ -51,10 +51,10 @@ def template_document(path: str | Path, title: str) -> Document:
 
 
 def note_path_for(pdf_path: Path) -> Path:
-    """« Cours.pdf » → « Cours (annoté).plume » : le PDF compagnon ne remplacera jamais l'original."""
+    """« Cours.pdf » → « Cours (annoté).fnote » : le PDF compagnon ne remplacera jamais l'original."""
     base = pdf_path.with_name(f"{pdf_path.stem} (annoté)")
-    candidate, k = base.with_suffix(".plume"), 2
+    candidate, k = base.with_suffix(".fnote"), 2
     while candidate.exists():
-        candidate = pdf_path.with_name(f"{pdf_path.stem} (annoté {k}).plume")
+        candidate = pdf_path.with_name(f"{pdf_path.stem} (annoté {k}).fnote")
         k += 1
     return candidate

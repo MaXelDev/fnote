@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "plume"
-version = "1.1.0"
+name = "fnote"
+version = "1.2.0"
 description = "Prise de notes manuscrites au stylet pour Fedora/Wayland, 100 % locale"
 readme = "README.md"
 license = "MIT"
@@ -19,13 +19,13 @@ dependencies = [
 dev = ["pytest>=8"]
 
 [project.scripts]
-plume = "plume.app:main"
+fnote = "fnote.app:main"
 
 [tool.setuptools.packages.find]
-include = ["plume*"]
+include = ["fnote*"]
 
 [tool.setuptools.package-data]
-plume = ["resources/*.json", "resources/*.svg"]
+fnote = ["resources/*.json", "resources/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

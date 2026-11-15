@@ -1,4 +1,4 @@
-"""Paramètres de Plume (enregistrés dans ~/.config/plume/config.json)."""
+"""Paramètres de FNote (enregistrés dans ~/.config/fnote/config.json)."""
 from __future__ import annotations
 
 from PySide6.QtCore import QPointF, Qt
@@ -94,7 +94,7 @@ class SettingsDialog(QDialog):
                            ("straight_highlighter", "Surligneur droit"),
                            ("companion_pdf", "Créer NomDeLaNote.pdf à chaque sauvegarde (pour Obsidian)"),
                            ("x11_mode", "Curseur toujours caché pendant l'écriture (mode X11,\n"
-                                        "un peu moins fluide ; au prochain démarrage de Plume)")):
+                                        "un peu moins fluide ; au prochain démarrage de FNote)")):
             cb = QCheckBox(label)
             cb.setChecked(bool(getattr(config, key)))
             self.checks[key] = cb

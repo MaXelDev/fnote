@@ -1,4 +1,4 @@
-from plume.model import colors as c
+from fnote.model import colors as c
 
 
 def test_normalize():

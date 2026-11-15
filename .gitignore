@@ -12,6 +12,7 @@ dist/
 config.json
 
 # Notes et documents personnels — ne jamais committer
+*.fnote
 *.plume
 *.pdf
 !tests/fixtures/*.pdf

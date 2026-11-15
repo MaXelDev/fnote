@@ -15,13 +15,13 @@ def phase(row):
 
 
 rows = list(csv.DictReader(open(os.path.join(HERE, "features.csv"), encoding="utf-8")))
-out = ["# Matrice de fonctionnalités — Plume", "",
+out = ["# Matrice de fonctionnalités — FNote", "",
        "Checklist du projet. Source de vérité : `features.csv` (colonne `clone` : `no` → `partial` → `yes`, lue par `replica-diff`). "
        "Ce fichier est généré par `matrice.py`.", "",
        "Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, **skip** = hors périmètre. "
-       "Colonne *Samsung* : `partial` = existe sous une autre forme, `no` = propre à Plume (ou correctif issu de `fixes.md`).", ""]
+       "Colonne *Samsung* : `partial` = existe sous une autre forme, `no` = propre à FNote (ou correctif issu de `fixes.md`).", ""]
 for p in sorted({phase(r) for r in rows}):
-    out += [f"## {NAMES[p]}", "", "| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |", "|---|---|---|---|---|---|"]
+    out += [f"## {NAMES[p]}", "", "| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |", "|---|---|---|---|---|---|"]
     for r in rows:
         if phase(r) == p:
             note = re.sub(r"^phase \d\s*(—|;)?\s*", "", r["notes"])

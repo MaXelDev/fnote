@@ -3,9 +3,9 @@ import zipfile
 
 import pytest
 
-from plume.model import serialization as ser
-from plume.model.document import Document, Page
-from plume.model.elements import ImageItem, Shape, Stroke
+from fnote.model import serialization as ser
+from fnote.model.document import Document, Page
+from fnote.model.elements import ImageItem, Shape, Stroke
 
 
 def sample_doc():
@@ -22,7 +22,7 @@ def sample_doc():
 
 def test_round_trip(tmp_path):
     doc = sample_doc()
-    path = tmp_path / "note.plume"
+    path = tmp_path / "note.fnote"
     ser.save(doc, path)
     back = ser.load(path)
     assert back.title == "Analyse TD3"
@@ -37,12 +37,12 @@ def test_round_trip(tmp_path):
 
 def test_round_trip_with_pdf(tmp_path):
     doc = Document(pages=[Page(background={"kind": "pdf", "pdf_page": 0})], source_pdf=b"%PDF-1.7 fake")
-    ser.save(doc, tmp_path / "n.plume")
-    assert ser.load(tmp_path / "n.plume").source_pdf == b"%PDF-1.7 fake"
+    ser.save(doc, tmp_path / "n.fnote")
+    assert ser.load(tmp_path / "n.fnote").source_pdf == b"%PDF-1.7 fake"
 
 
 def test_atomic_save_keeps_old_file_on_crash(tmp_path, monkeypatch):
-    path = tmp_path / "note.plume"
+    path = tmp_path / "note.fnote"
     ser.save(sample_doc(), path)
     before = path.read_bytes()
 
@@ -52,7 +52,7 @@ def test_atomic_save_keeps_old_file_on_crash(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError):
         ser.save(sample_doc(), path)
     assert path.read_bytes() == before
-    assert [f.name for f in tmp_path.iterdir()] == ["note.plume"]  # pas de temporaire oublié
+    assert [f.name for f in tmp_path.iterdir()] == ["note.fnote"]  # pas de temporaire oublié
 
 
 def write_zip(path, doc_json, extra=None):
@@ -69,14 +69,14 @@ def minimal(**over):
 
 
 def test_future_version_refused(tmp_path):
-    write_zip(tmp_path / "f.plume", minimal(format_version=99))
-    with pytest.raises(ser.PlumeFormatError, match="plus récente"):
-        ser.load(tmp_path / "f.plume")
+    write_zip(tmp_path / "f.fnote", minimal(format_version=99))
+    with pytest.raises(ser.FNoteFormatError, match="plus récente"):
+        ser.load(tmp_path / "f.fnote")
 
 
 def test_path_traversal_entries_are_ignored(tmp_path):
-    write_zip(tmp_path / "z.plume", minimal(), {"../../evil.sh": "rm -rf ~", "assets/../../x.png": "x"})
-    doc = ser.load(tmp_path / "z.plume")
+    write_zip(tmp_path / "z.fnote", minimal(), {"../../evil.sh": "rm -rf ~", "assets/../../x.png": "x"})
+    doc = ser.load(tmp_path / "z.fnote")
     assert doc.assets == {}
     assert not (tmp_path.parent / "evil.sh").exists()
 
@@ -93,34 +93,34 @@ def test_path_traversal_entries_are_ignored(tmp_path):
     minimal(pages=[{"id": "p", "width": float("nan"), "height": 1}]),
 ])
 def test_invalid_documents_rejected(tmp_path, bad):
-    write_zip(tmp_path / "b.plume", bad)
-    with pytest.raises(ser.PlumeFormatError):
-        ser.load(tmp_path / "b.plume")
+    write_zip(tmp_path / "b.fnote", bad)
+    with pytest.raises(ser.FNoteFormatError):
+        ser.load(tmp_path / "b.fnote")
 
 
 def test_corrupt_file(tmp_path):
-    (tmp_path / "c.plume").write_bytes(b"pas un zip")
-    with pytest.raises(ser.PlumeFormatError, match="corrompu"):
-        ser.load(tmp_path / "c.plume")
+    (tmp_path / "c.fnote").write_bytes(b"pas un zip")
+    with pytest.raises(ser.FNoteFormatError, match="corrompu"):
+        ser.load(tmp_path / "c.fnote")
 
 
 def test_oversized_entry_rejected(tmp_path, monkeypatch):
     monkeypatch.setattr(ser, "MAX_ASSET", 10)
-    write_zip(tmp_path / "o.plume", minimal(), {"assets/0123456789abcdef.png": b"x" * 100})
-    with pytest.raises(ser.PlumeFormatError, match="volumineuse"):
-        ser.load(tmp_path / "o.plume")
+    write_zip(tmp_path / "o.fnote", minimal(), {"assets/0123456789abcdef.png": b"x" * 100})
+    with pytest.raises(ser.FNoteFormatError, match="volumineuse"):
+        ser.load(tmp_path / "o.fnote")
 
 
 def test_total_decompressed_budget(tmp_path, monkeypatch):
     monkeypatch.setattr(ser, "MAX_TOTAL", 150)
     extra = {f"assets/{i:016x}.png": b"x" * 60 for i in range(3)}
-    write_zip(tmp_path / "t.plume", minimal(), extra)
-    with pytest.raises(ser.PlumeFormatError, match="volumineuse"):
-        ser.load(tmp_path / "t.plume")
+    write_zip(tmp_path / "t.fnote", minimal(), extra)
+    with pytest.raises(ser.FNoteFormatError, match="volumineuse"):
+        ser.load(tmp_path / "t.fnote")
 
 
 def test_duplicate_ids_rejected(tmp_path):
     s = {"type": "stroke", "id": "same", "tool": "pencil", "color": "#000000ff", "width": 1, "points": [[0, 0, 0, 0]]}
-    write_zip(tmp_path / "d.plume", minimal(pages=[{"id": "p", "width": 1, "height": 1, "ink": [s, dict(s)]}]))
-    with pytest.raises(ser.PlumeFormatError, match="double"):
-        ser.load(tmp_path / "d.plume")
+    write_zip(tmp_path / "d.fnote", minimal(pages=[{"id": "p", "width": 1, "height": 1, "ink": [s, dict(s)]}]))
+    with pytest.raises(ser.FNoteFormatError, match="double"):
+        ser.load(tmp_path / "d.fnote")

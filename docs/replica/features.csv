@@ -10,12 +10,12 @@ Un doigt = défiler / deux doigts = zoom,navigation,must,yes,yes,phase 1
 Le doigt ne dessine pas (option pour l'activer),stylet,must,yes,yes,phase 1
 Bouton latéral maintenu = gomme temporaire (ou lasso),stylet,must,yes,yes,phase 2 ; configurable
 Souris dessine / molette défile / Ctrl+molette zoome,navigation,must,partial,yes,phase 1
-Fenêtre de diagnostic --debug-tablet,stylet,must,no,yes,phase 0 ; spécifique Plume
-Mode --debug-perf (fps et temps de rendu),encre,should,no,yes,phase 1 ; spécifique Plume
+Fenêtre de diagnostic --debug-tablet,stylet,must,no,yes,phase 0 ; spécifique FNote
+Mode --debug-perf (fps et temps de rendu),encre,should,no,yes,phase 1 ; spécifique FNote
 Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons),édition,must,yes,yes,phase 1
 Sauvegarde automatique après inactivité,fichiers,must,yes,yes,phase 1
 Sauvegarde atomique (aucune perte sur crash),fichiers,must,partial,yes,phase 0
-Format .plume (ZIP + document.json versionné + assets),fichiers,must,no,yes,phase 0 ; Samsung utilise .sdocx
+Format .fnote (ZIP + document.json versionné + assets),fichiers,must,no,yes,phase 0 ; Samsung utilise .sdocx
 Défilement vertical continu multi-pages A4,pages,must,yes,yes,phase 1
 Ajout automatique de page en bas,pages,must,yes,yes,phase 1
 Rendu des seules pages visibles,encre,must,yes,yes,phase 1 ; 60 fps sur 30 pages
@@ -59,12 +59,12 @@ Import PDF (une page = une page avec fond PDF),pdf,must,yes,yes,phase 5
 Insérer des pages vierges entre pages PDF,pdf,must,yes,yes,phase 5
 Export PDF vectoriel (texte d'origine sélectionnable),pdf,must,partial,yes,phase 5 ; Samsung aplatit parfois
 Export PDF d'une note sans PDF source,pdf,must,yes,yes,phase 5
-Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,yes,phase 5 ; spécifique Plume
-Panneau arborescence du vault (.plume + .pdf),notes,must,partial,yes,phase 6 ; Samsung a des dossiers internes
+Export compagnon NomDeLaNote.pdf pour Obsidian,fichiers,must,no,yes,phase 5 ; spécifique FNote
+Panneau arborescence du vault (.fnote + .pdf),notes,must,partial,yes,phase 6 ; Samsung a des dossiers internes
 Créer / renommer / déplacer des notes et dossiers,notes,must,yes,yes,phase 6
 Supprimer vers la corbeille système,notes,must,yes,yes,phase 6
 Plusieurs notes en onglets,notes,should,no,yes,phase 6
-Paramètres dans ~/.config/plume/config.json,paramètres,must,no,yes,phase 0
+Paramètres dans ~/.config/fnote/config.json,paramètres,must,no,yes,phase 0
 Plein écran F11,interface,should,yes,yes,phase 6
 Thème clair/sombre suivant le système,interface,should,yes,yes,phase 6 ; fonds de page restent blancs
 Raccourcis clavier des outils,interface,should,yes,yes,phase 6

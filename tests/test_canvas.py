@@ -7,12 +7,12 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 from PySide6.QtCore import QPointF  # noqa: E402
 
-from plume.controller.tools.eraser import EraserTool  # noqa: E402
-from plume.controller.tools.ink import InkTool, straighten  # noqa: E402
-from plume.model.config import Config  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.model.history import History  # noqa: E402
-from plume.view.canvas import Canvas  # noqa: E402
+from fnote.controller.tools.eraser import EraserTool  # noqa: E402
+from fnote.controller.tools.ink import InkTool, straighten  # noqa: E402
+from fnote.model.config import Config  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.model.history import History  # noqa: E402
+from fnote.view.canvas import Canvas  # noqa: E402
 
 app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 PEN = {"tool": "fountain", "color": "#1a1a1aff", "width": 2.0}
@@ -216,7 +216,7 @@ def test_side_button_in_hover_only_arms_eraser():
 def test_cursor_comes_back_only_on_real_mouse_motion():
     from PySide6.QtCore import QEvent, Qt
     from PySide6.QtGui import QMouseEvent, QPointingDevice
-    from plume.controller.input_router import InputRouter
+    from fnote.controller.input_router import InputRouter
     r = InputRouter(app)
     pad = QPointingDevice("pavé", 2, QPointingDevice.DeviceType.TouchPad, QPointingDevice.PointerType.Generic,
                           QPointingDevice.Capability.Position, 1, 2)
@@ -243,7 +243,7 @@ def test_pen_considered_gone_after_silence_without_proximity_events():
     import time
     from PySide6.QtCore import QEvent, Qt
     from PySide6.QtGui import QPointingDevice, QTabletEvent
-    from plume.controller.input_router import InputRouter
+    from fnote.controller.input_router import InputRouter
     r = InputRouter(app)
     dev = QPointingDevice("stylet", 3, QPointingDevice.DeviceType.Stylus, QPointingDevice.PointerType.Pen,
                           QPointingDevice.Capability.Position | QPointingDevice.Capability.Pressure, 1, 3)

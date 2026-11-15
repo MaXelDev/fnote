@@ -1,20 +1,20 @@
-<p align="center"><img src="plume/resources/plume.svg" width="96" alt="Logo de Plume"></p>
+<p align="center"><img src="fnote/resources/fnote.svg" width="96" alt="Logo de FNote"></p>
 
-<h1 align="center">Plume</h1>
+<h1 align="center">FNote</h1>
 
 <p align="center"><b>Tes cours à la main, au stylet, comme sur une feuille — sous Linux.</b><br>
 Prise de notes manuscrites et annotation de PDF pour Fedora / GNOME Wayland. 100 % hors ligne, rangé dans ton vault Obsidian.</p>
 
-<p align="center"><img src="docs/screenshots/note.png" alt="Une note de cours manuscrite dans Plume" width="820"></p>
+<p align="center"><img src="docs/screenshots/note.png" alt="Une note de cours manuscrite dans FNote" width="820"></p>
 
-## Pourquoi Plume
+## Pourquoi FNote
 
-Les applis de notes libres sous Linux marchent, mais l'encre traîne derrière le stylet et le curseur de la souris reste affiché pendant qu'on écrit : on n'a pas l'impression d'écrire sur du papier. Plume est construit autour de ces deux points.
+Les applis de notes libres sous Linux marchent, mais l'encre traîne derrière le stylet et le curseur de la souris reste affiché pendant qu'on écrit : on n'a pas l'impression d'écrire sur du papier. FNote est construit autour de ces deux points.
 
 - **L'encre suit la pointe.** Seul le dernier segment est redessiné pendant le tracé, les traits finis sont « cuits » dans une image par page, aucun point du stylet n'est fusionné. Épaisseur selon la pression, lissage sans retard.
 - **Pas de curseur pendant l'écriture.** Il disparaît dès que le stylet approche de l'écran ; un petit point discret indique où tu vas écrire. Il revient quand tu touches la souris.
 - **La main posée ne dessine pas.** Le tactile est ignoré tant que le stylet est proche. Un doigt fait défiler, deux doigts zooment.
-- **Tes fichiers restent à toi.** Une note = un fichier `.plume` dans ton vault, et (au choix) un `NomDeLaNote.pdf` à côté, prêt pour `![[NomDeLaNote.pdf]]` dans Obsidian. Aucun compte, aucun réseau.
+- **Tes fichiers restent à toi.** Une note = un fichier `.fnote` dans ton vault, et (au choix) un `NomDeLaNote.pdf` à côté, prêt pour `![[NomDeLaNote.pdf]]` dans Obsidian. Aucun compte, aucun réseau.
 
 ## Ce que tu peux faire
 
@@ -42,12 +42,12 @@ Les applis de notes libres sous Linux marchent, mais l'encre traîne derrière l
 ## Installation (Fedora)
 
 ```bash
-git clone https://github.com/MaXelDev/plume.git
-cd plume
+git clone https://github.com/MaXelDev/fnote.git
+cd fnote
 ./install.sh
 ```
 
-Plume apparaît ensuite dans les applications GNOME (et `plume` dans le terminal). Il faut Python 3.12 ou plus (`sudo dnf install python3`). L'installation télécharge PySide6, PyMuPDF et NumPy ; **l'application, elle, ne se connecte jamais à Internet**.
+FNote apparaît ensuite dans les applications GNOME (et `fnote` dans le terminal). Il faut Python 3.12 ou plus (`sudo dnf install python3`). L'installation télécharge PySide6, PyMuPDF et NumPy ; **l'application, elle, ne se connecte jamais à Internet**.
 Désinstaller : `./uninstall.sh` (tes notes et tes paramètres sont conservés).
 
 ## Premiers pas
@@ -56,7 +56,7 @@ Désinstaller : `./uninstall.sh` (tes notes et tes paramètres sont conservés).
 2. **Nouvelle note** (Ctrl+N) ou **Annoter un PDF** depuis l'accueil — ou double-clique un PDF dans le panneau des notes.
 3. Écris. Tout est enregistré automatiquement quelques secondes après ton dernier trait.
 
-Si le stylet ne se comporte pas comme prévu : *Menu → Aide → Diagnostic du stylet* (ou `plume --debug-tablet`) affiche en direct la pression, l'inclinaison, les boutons et la proximité.
+Si le stylet ne se comporte pas comme prévu : *Menu → Aide → Diagnostic du stylet* (ou `fnote --debug-tablet`) affiche en direct la pression, l'inclinaison, les boutons et la proximité.
 
 ## Raccourcis
 
@@ -78,13 +78,13 @@ Un **second appui** sur l'outil actif ouvre ses réglages (couleur, épaisseur, 
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 git config core.hooksPath .githooks   # pytest avant chaque commit
 .venv/bin/pytest -q                   # 120+ tests, sans matériel
-.venv/bin/plume --debug-perf          # fps et temps de rendu à l'écran
+.venv/bin/fnote --debug-perf          # fps et temps de rendu à l'écran
 ```
 
 Architecture (MVC), format de fichier et choix techniques : [`docs/replica/architecture.md`](docs/replica/architecture.md), [`docs/adr/0001-stack.md`](docs/adr/0001-stack.md), plan de tests [`docs/tests.md`](docs/tests.md).
 
 ## Licence
 
-Code de Plume sous licence **MIT**. Plume s'appuie sur PySide6 (LGPL-3.0), NumPy (BSD) et **PyMuPDF (AGPL-3.0)** : toute version *distribuée* avec PyMuPDF est soumise aux conditions de l'AGPL-3.0. Pour un usage personnel, rien ne change.
+Code de FNote sous licence **MIT**. FNote s'appuie sur PySide6 (LGPL-3.0), NumPy (BSD) et **PyMuPDF (AGPL-3.0)** : toute version *distribuée* avec PyMuPDF est soumise aux conditions de l'AGPL-3.0. Pour un usage personnel, rien ne change.
 
 *Mots-clés : notes manuscrites, stylet, tablette graphique, Wacom, écran tactile, PDF, annotation, surligneur, Linux, Fedora, GNOME, Wayland, Obsidian, hors ligne, étudiant.*

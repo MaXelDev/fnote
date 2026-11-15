@@ -1,22 +1,22 @@
-# Matrice de fonctionnalités — Plume
+# Matrice de fonctionnalités — FNote
 
 Checklist du projet. Source de vérité : `features.csv` (colonne `clone` : `no` → `partial` → `yes`, lue par `replica-diff`). Ce fichier est généré par `matrice.py`.
 
-Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, **skip** = hors périmètre. Colonne *Samsung* : `partial` = existe sous une autre forme, `no` = propre à Plume (ou correctif issu de `fixes.md`).
+Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, **skip** = hors périmètre. Colonne *Samsung* : `partial` = existe sous une autre forme, `no` = propre à FNote (ou correctif issu de `fixes.md`).
 
 ## Phase 0 — Squelette
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
-| Fenêtre de diagnostic --debug-tablet | stylet | must | no | yes | spécifique Plume |
+| Fenêtre de diagnostic --debug-tablet | stylet | must | no | yes | spécifique FNote |
 | Sauvegarde atomique (aucune perte sur crash) | fichiers | must | partial | yes |  |
-| Format .plume (ZIP + document.json versionné + assets) | fichiers | must | no | yes | Samsung utilise .sdocx |
-| Paramètres dans ~/.config/plume/config.json | paramètres | must | no | yes |  |
+| Format .fnote (ZIP + document.json versionné + assets) | fichiers | must | no | yes | Samsung utilise .sdocx |
+| Paramètres dans ~/.config/fnote/config.json | paramètres | must | no | yes |  |
 | --debug-tablet affiche l'échelle et le décalage stylet/pointeur | stylet | should | no | yes | fix #7 (Rnote #1543) |
 
 ## Phase 1 — Moteur d'encre
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Écriture au stylet avec pression (épaisseur variable) | encre | must | yes | yes | critère n°1 |
 | Tracé incrémental sans retard visible (latence minimale) | encre | must | yes | yes | critère n°1 ; cache bitmap par page |
@@ -28,7 +28,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Un doigt = défiler / deux doigts = zoom | navigation | must | yes | yes |  |
 | Le doigt ne dessine pas (option pour l'activer) | stylet | must | yes | yes |  |
 | Souris dessine / molette défile / Ctrl+molette zoome | navigation | must | partial | yes |  |
-| Mode --debug-perf (fps et temps de rendu) | encre | should | no | yes | spécifique Plume |
+| Mode --debug-perf (fps et temps de rendu) | encre | should | no | yes | spécifique FNote |
 | Annuler / rétablir illimité (Ctrl+Z / Ctrl+Y + boutons) | édition | must | yes | yes |  |
 | Sauvegarde automatique après inactivité | fichiers | must | yes | yes |  |
 | Défilement vertical continu multi-pages A4 | pages | must | yes | yes |  |
@@ -41,7 +41,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 ## Phase 2 — Outils de base
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Bouton latéral maintenu = gomme temporaire (ou lasso) | stylet | must | yes | yes | configurable |
 | Ajuster à la largeur | navigation | should | yes | yes |  |
@@ -68,7 +68,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 ## Phase 3 — Lasso et images
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Lasso libre (traits surlignages formes images) | lasso | must | yes | yes |  |
 | Lasso : déplacer | lasso | must | yes | yes |  |
@@ -83,7 +83,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 ## Phase 4 — Formes et règle
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Formes auto-corrigées (maintien ~0.5 s) | formes | must | yes | yes | ligne rect cercle ellipse triangle flèche |
 | Forme reprend couleur et épaisseur du trait | formes | must | yes | yes |  |
@@ -96,19 +96,19 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 ## Phase 5 — PDF
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Import PDF (une page = une page avec fond PDF) | pdf | must | yes | yes |  |
 | Insérer des pages vierges entre pages PDF | pdf | must | yes | yes |  |
 | Export PDF vectoriel (texte d'origine sélectionnable) | pdf | must | partial | yes | Samsung aplatit parfois |
 | Export PDF d'une note sans PDF source | pdf | must | yes | yes |  |
-| Export compagnon NomDeLaNote.pdf pour Obsidian | fichiers | must | no | yes | spécifique Plume |
+| Export compagnon NomDeLaNote.pdf pour Obsidian | fichiers | must | no | yes | spécifique FNote |
 
 ## Phase 6 — Confort et finition
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
-| Panneau arborescence du vault (.plume + .pdf) | notes | must | partial | yes | Samsung a des dossiers internes |
+| Panneau arborescence du vault (.fnote + .pdf) | notes | must | partial | yes | Samsung a des dossiers internes |
 | Créer / renommer / déplacer des notes et dossiers | notes | must | yes | yes |  |
 | Supprimer vers la corbeille système | notes | must | yes | yes |  |
 | Plusieurs notes en onglets | notes | should | no | yes |  |
@@ -118,7 +118,7 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 
 ## Hors périmètre (skip)
 
-| Fonctionnalité | Zone | Priorité | Samsung | Plume | Notes |
+| Fonctionnalité | Zone | Priorité | Samsung | FNote | Notes |
 |---|---|---|---|---|---|
 | Synchronisation / cloud / compte Samsung | hors périmètre | skip | yes | skip | 7.12 — 100 % local |
 | Recherche dans l'écriture manuscrite (OCR) | hors périmètre | skip | yes | skip | 7.12 |

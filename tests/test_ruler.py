@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from plume.engine.ruler_geometry import RulerGeometry, normalize_deg, snap_angle
+from fnote.engine.ruler_geometry import RulerGeometry, normalize_deg, snap_angle
 
 
 @pytest.mark.parametrize("deg,expected", [(1.5, 0), (14, 15), (44.0, 45), (91, 90), (37, 37), (-29, -30)])

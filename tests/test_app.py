@@ -1,4 +1,4 @@
-from plume.app import configure_platform, parse_args
+from fnote.app import configure_platform, parse_args
 
 
 def test_wayland_with_xcb_fallback():
@@ -26,5 +26,5 @@ def test_no_wayland_leaves_default():
 
 
 def test_args():
-    a = parse_args(["note.plume", "--debug-tablet"])
-    assert a.file == "note.plume" and a.debug_tablet
+    a = parse_args(["note.fnote", "--debug-tablet"])
+    assert a.file == "note.fnote" and a.debug_tablet

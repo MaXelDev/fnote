@@ -2,9 +2,9 @@ import math
 
 import numpy as np
 
-from plume.engine import geometry as g
-from plume.engine.pressure import PressureCurve
-from plume.engine.smoothing import StreamSmoother, finalize
+from fnote.engine import geometry as g
+from fnote.engine.pressure import PressureCurve
+from fnote.engine.smoothing import StreamSmoother, finalize
 
 
 def test_pressure_curve_monotone_and_bounded():

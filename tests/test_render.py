@@ -6,10 +6,10 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 
-from plume.engine.pressure import PressureCurve  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.model.elements import Shape, Stroke  # noqa: E402
-from plume.view.render import PageRenderer, qcolor  # noqa: E402
+from fnote.engine.pressure import PressureCurve  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.model.elements import Shape, Stroke  # noqa: E402
+from fnote.view.render import PageRenderer, qcolor  # noqa: E402
 
 app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 

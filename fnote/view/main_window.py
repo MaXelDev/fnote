@@ -161,12 +161,12 @@ class MainWindow(QMainWindow):
         self.addAction(self._shortcut("L", lambda: self.tools.set_mode("lasso")))
         self.addAction(self._shortcut("R", lambda: self._toolbar_action("ruler")))
         self.addAction(self._shortcut("F9", lambda: self._toolbar_action("sidebar")))
-        self._action(e, "Coller", self.paste, QKeySequence.StandardKey.Paste)
+        self._action(e, "Coller", lambda: self.paste(), QKeySequence.StandardKey.Paste)
         self._action(e, "Copier la sélection", lambda: self._selection("copy"), QKeySequence.StandardKey.Copy)
         self._action(e, "Couper la sélection", lambda: self._selection("cut"), QKeySequence.StandardKey.Cut)
         self._action(e, "Dupliquer la sélection", lambda: self._selection("duplicate"), "Ctrl+D")
         self._action(e, "Supprimer la sélection", lambda: self._selection("delete"), QKeySequence.StandardKey.Delete)
-        act_image = self._action(e, "Insérer une image…", self.insert_image, "Ctrl+I")
+        act_image = self._action(e, "Insérer une image…", lambda: self.insert_image(), "Ctrl+I")
         self.extra_actions["image"] = lambda tab: self.insert_image()
         self.extra_actions["ruler"] = self._toggle_ruler
         # Menu « ⋮ » de la barre : une seule liste à grandes lignes, sans sous-menu à survoler
@@ -225,8 +225,47 @@ class MainWindow(QMainWindow):
             tool.action(key)
             self._sync_undo()
 
-    def paste(self):
-        """Ctrl+V : sélection copiée dans Plume, sinon image du presse-papiers système."""
+    def _can_paste(self) -> bool:
+        from PySide6.QtWidgets import QApplication
+        from ..controller.tools.lasso import CLIPBOARD, MIME_MARK
+        mime = QApplication.clipboard().mimeData()
+        return mime is not None and ((bool(CLIPBOARD["elements"]) and mime.hasFormat(MIME_MARK)) or mime.hasImage())
+
+    def _long_press(self, tab, index: int, item, pos):
+        """Appui long : sur un élément, il est sélectionné (barre Copier, Couper…) ;
+        dans le vide, menu Coller / Insérer à cet endroit."""
+        if item is not None:
+            self._select_tapped(tab, index, item)
+            return
+        page = tab.canvas.doc.pages[index]
+        menu = QMenu(self)
+        menu.addAction("Coller ici", lambda: self.paste(pos)).setEnabled(self._can_paste())
+        menu.addAction("Insérer une image ici…", lambda: self.insert_image(pos))
+        menu.addAction("Ajouter une page après celle-ci", lambda: self._add_page_after(tab, index))
+        menu.addSeparator()
+        menu.addAction("Tout sélectionner sur la page", lambda: self._select_all(tab, index)) \
+            .setEnabled(any(True for _ in page.elements()))
+        menu.addAction("Annuler", self.undo).setEnabled(tab.ctl.history.can_undo)
+        menu.addAction("Rétablir", self.redo).setEnabled(tab.ctl.history.can_redo)
+        self._long_menu = menu  # gardé pour les tests
+        menu.popup(tab.canvas.viewport().mapToGlobal(pos.toPoint()))
+
+    def _add_page_after(self, tab, index: int):
+        from ..model.document import Page, next_background
+        from ..model.history import AddPage
+        ref = tab.canvas.doc.pages[index]
+        bg = next_background(ref, self.config.default_background)
+        tab.canvas.apply(AddPage(index + 1, Page(width=ref.width, height=ref.height, background=bg)))
+        tab.canvas.scroll_to_page(index + 1)
+        self._sync_undo()
+
+    def _select_all(self, tab, index: int):
+        self.tools.set_mode("lasso")
+        self.toolbar.sync()
+        tab.canvas.tool.select(list(tab.canvas.doc.pages[index].elements()), index)
+
+    def paste(self, at_view=None):
+        """Ctrl+V : sélection copiée dans FNote, sinon image du presse-papiers système."""
         from PySide6.QtWidgets import QApplication
         from ..controller import images
         from ..controller.tools.lasso import CLIPBOARD, MIME_MARK, paste
@@ -236,12 +275,12 @@ class MainWindow(QMainWindow):
         mime = QApplication.clipboard().mimeData()
         if CLIPBOARD["elements"] and mime is not None and mime.hasFormat(MIME_MARK):
             self.tools.set_mode("lasso")
-            paste(tab.canvas, self._lasso())
+            paste(tab.canvas, self._lasso(), at_view)
         elif mime and mime.hasImage():
-            images.add_image(tab.canvas, QApplication.clipboard().image())
+            images.add_image(tab.canvas, QApplication.clipboard().image(), at_view)
         self._sync_undo()
 
-    def insert_image(self):
+    def insert_image(self, at_view=None):
         from ..controller import images
         tab = self.current_tab()
         if tab is None:
@@ -250,7 +289,7 @@ class MainWindow(QMainWindow):
         if not path:
             return
         img = images.load_file(path)
-        if img.isNull() or images.add_image(tab.canvas, img) is None:
+        if img.isNull() or images.add_image(tab.canvas, img, at_view) is None:
             QMessageBox.warning(self, "Image illisible", "Ce fichier n'est pas une image prise en charge (ou dépasse 64 Mo).")
         self._sync_undo()
 
@@ -373,7 +412,7 @@ class MainWindow(QMainWindow):
         name = name.strip().replace("/", "-")
         if not ok or not name:
             return
-        path = Path(folder) / f"{name}.plume"
+        path = Path(folder) / f"{name}.fnote"
         if path.exists():
             QMessageBox.warning(self, "Nom déjà pris", f"« {path.name} » existe déjà.")
             return
@@ -402,13 +441,13 @@ class MainWindow(QMainWindow):
 
     def open_dialog(self) -> None:
         start = str(self.vault() or Path.home())
-        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une note", start, "Notes Plume (*.plume)")
+        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une note", start, "Notes FNote (*.fnote *.plume)")
         if path:
             self.open_file(Path(path))
 
     def open_file(self, path: Path) -> None:
         path = Path(path)
-        if path.suffix.lower() == ".pdf":  # « Ouvrir avec Plume » sur un PDF : on l'annote
+        if path.suffix.lower() == ".pdf":  # « Ouvrir avec FNote » sur un PDF : on l'annote
             self.import_pdf(path)
             return
         for i in range(self.tabs.count()):
@@ -418,7 +457,7 @@ class MainWindow(QMainWindow):
                 return
         try:
             ctl = DocumentController.open(path, self.config)
-        except (OSError, serialization.PlumeFormatError) as exc:
+        except (OSError, serialization.FNoteFormatError) as exc:
             QMessageBox.critical(self, "Impossible d'ouvrir la note", f"{path.name} : {exc}")
             return
         self._add_tab(ctl)
@@ -432,6 +471,7 @@ class MainWindow(QMainWindow):
         self._remember(ctl.path)
         tab.canvas.changed.connect(self._sync_undo)
         tab.canvas.imageTapped.connect(lambda i, item, t=tab: self._select_tapped(t, i, item))
+        tab.canvas.longPressed.connect(lambda i, item, pos, t=tab: self._long_press(t, i, item, pos))
         if self.tabs.indexOf(self.empty) >= 0:
             self.tabs.removeTab(self.tabs.indexOf(self.empty))
         idx = self.tabs.addTab(tab, ctl.title)
@@ -474,7 +514,7 @@ class MainWindow(QMainWindow):
             self.import_pdf(Path(path))
 
     def import_pdf(self, pdf_path: Path, folder: Path | None = None) -> None:
-        """Crée « Nom (annoté).plume » (dans le vault si le PDF est hors du vault) et l'ouvre."""
+        """Crée « Nom (annoté).fnote » (dans le vault si le PDF est hors du vault) et l'ouvre."""
         from ..pdf.importer import PdfImportError, import_pdf, note_path_for
         try:
             doc = import_pdf(pdf_path)
@@ -520,8 +560,8 @@ class MainWindow(QMainWindow):
 
     def _update_title(self) -> None:
         tab = self.current_tab()
-        name = tab.ctl.title if tab else "Plume"
-        self.setWindowTitle(f"{name} — Plume" if tab else "Plume")
+        name = tab.ctl.title if tab else "FNote"
+        self.setWindowTitle(f"{name} — FNote" if tab else "FNote")
 
     def closeEvent(self, event):
         for tab in self.note_tabs():

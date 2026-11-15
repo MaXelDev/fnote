@@ -1,4 +1,4 @@
-"""Format .plume : archive ZIP = document.json (versionné) + assets/ + source.pdf.
+"""Format .fnote : archive ZIP = document.json (versionné) + assets/ + source.pdf.
 
 Lecture défensive (fichier non fiable) : noms d'entrées en liste blanche, rien
 n'est extrait sur disque, tailles plafonnées, JSON validé champ par champ.
@@ -28,8 +28,8 @@ MAX_PDF = 512 * 2**20
 MAX_TOTAL = 1024 * 2**20
 
 
-class PlumeFormatError(ValueError):
-    """Fichier .plume illisible, corrompu ou d'une version future."""
+class FNoteFormatError(ValueError):
+    """Fichier .fnote illisible, corrompu ou d'une version future."""
 
 
 # ---------- écriture ----------
@@ -52,7 +52,7 @@ def _element_to_dict(e) -> dict:
 def to_dict(doc: Document) -> dict:
     return {
         "format_version": FORMAT_VERSION,
-        "app": "plume",
+        "app": "fnote",
         "metadata": {"title": doc.title, "created": doc.created, "modified": doc.modified},
         "source_pdf": PDF_NAME if doc.source_pdf else None,
         "pages": [{
@@ -98,33 +98,33 @@ def save(doc: Document, path: str | os.PathLike) -> None:
 
 def _num(v, what: str) -> float:
     if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or abs(v) > 1e7:
-        raise PlumeFormatError(f"nombre invalide pour {what}")
+        raise FNoteFormatError(f"nombre invalide pour {what}")
     return float(v)
 
 
 def _color(v) -> str:
     if not isinstance(v, str) or not COLOR_RE.match(v):
-        raise PlumeFormatError(f"couleur invalide : {v!r}")
+        raise FNoteFormatError(f"couleur invalide : {v!r}")
     return v.lower()
 
 
 def _id(d) -> str:
     v = d.get("id")
     if not isinstance(v, str) or not 0 < len(v) <= 64:
-        raise PlumeFormatError("identifiant d'élément invalide")
+        raise FNoteFormatError("identifiant d'élément invalide")
     return v
 
 
 def _stroke(d: dict) -> Stroke:
     if d.get("tool") not in TOOLS:
-        raise PlumeFormatError(f"outil inconnu : {d.get('tool')!r}")
+        raise FNoteFormatError(f"outil inconnu : {d.get('tool')!r}")
     pts = d.get("points")
     if not isinstance(pts, list) or not pts:
-        raise PlumeFormatError("trait sans points")
+        raise FNoteFormatError("trait sans points")
     points = []
     for p in pts:
         if not isinstance(p, list) or len(p) != 4:
-            raise PlumeFormatError("point de trait invalide")
+            raise FNoteFormatError("point de trait invalide")
         points.append(tuple(_num(v, "point") for v in p))
     return Stroke(points=points, color=_color(d.get("color")), width=_num(d.get("width"), "épaisseur"),
                   tool=d["tool"], id=_id(d))
@@ -132,10 +132,10 @@ def _stroke(d: dict) -> Stroke:
 
 def _shape(d: dict) -> Shape:
     if d.get("kind") not in SHAPE_KINDS:
-        raise PlumeFormatError(f"forme inconnue : {d.get('kind')!r}")
+        raise FNoteFormatError(f"forme inconnue : {d.get('kind')!r}")
     geo = d.get("geometry")
     if not isinstance(geo, list) or not geo or any(not isinstance(p, list) or len(p) != 2 for p in geo):
-        raise PlumeFormatError("géométrie de forme invalide")
+        raise FNoteFormatError("géométrie de forme invalide")
     return Shape(kind=d["kind"], geometry=[(_num(x, "x"), _num(y, "y")) for x, y in geo],
                  color=_color(d.get("color")), width=_num(d.get("width"), "épaisseur"),
                  rotation=_num(d.get("rotation", 0), "rotation"), id=_id(d))
@@ -144,10 +144,10 @@ def _shape(d: dict) -> Shape:
 def _image(d: dict, assets: dict) -> ImageItem:
     asset = d.get("asset")
     if asset not in assets:
-        raise PlumeFormatError(f"image manquante dans l'archive : {asset!r}")
+        raise FNoteFormatError(f"image manquante dans l'archive : {asset!r}")
     rect, crop = d.get("rect"), d.get("crop", [0, 0, 1, 1])
     if not isinstance(rect, list) or len(rect) != 4 or not isinstance(crop, list) or len(crop) != 4:
-        raise PlumeFormatError("cadre d'image invalide")
+        raise FNoteFormatError("cadre d'image invalide")
     return ImageItem(asset=asset, rect=tuple(_num(v, "cadre") for v in rect),
                      rotation=_num(d.get("rotation", 0), "rotation"),
                      crop=tuple(_num(v, "recadrage") for v in crop), id=_id(d))
@@ -156,31 +156,31 @@ def _image(d: dict, assets: dict) -> ImageItem:
 def _layer(page: dict, name: str, parse, kind: str) -> list:
     items = page.get(name, [])
     if not isinstance(items, list) or any(not isinstance(e, dict) or e.get("type") != kind for e in items):
-        raise PlumeFormatError(f"calque {name} invalide")
+        raise FNoteFormatError(f"calque {name} invalide")
     return [parse(e) for e in items]
 
 
 def from_dict(data: dict, assets: dict[str, bytes] | None = None, source_pdf: bytes | None = None) -> Document:
     assets = assets or {}
     if not isinstance(data, dict):
-        raise PlumeFormatError("document.json n'est pas un objet")
+        raise FNoteFormatError("document.json n'est pas un objet")
     version = data.get("format_version")
     if not isinstance(version, int) or version < 1:
-        raise PlumeFormatError("format_version absent ou invalide")
+        raise FNoteFormatError("format_version absent ou invalide")
     if version > FORMAT_VERSION:
-        raise PlumeFormatError(f"note créée par une version plus récente de Plume (format {version})")
+        raise FNoteFormatError(f"note créée par une version plus récente de FNote (format {version})")
     meta = data.get("metadata") or {}
     pages = []
     for p in data.get("pages") or []:
         if not isinstance(p, dict):
-            raise PlumeFormatError("page invalide")
+            raise FNoteFormatError("page invalide")
         bg = p.get("background") or {"kind": "blank"}
         if not isinstance(bg, dict) or bg.get("kind") not in BACKGROUNDS:
-            raise PlumeFormatError(f"fond de page inconnu : {bg!r}")
+            raise FNoteFormatError(f"fond de page inconnu : {bg!r}")
         if bg["kind"] == "pdf" and (source_pdf is None or not isinstance(bg.get("pdf_page"), int)):
-            raise PlumeFormatError("page PDF sans PDF source")
+            raise FNoteFormatError("page PDF sans PDF source")
         if not isinstance(bg.get("template", False), bool):
-            raise PlumeFormatError("fond de page : « template » doit être vrai ou faux")
+            raise FNoteFormatError("fond de page : « template » doit être vrai ou faux")
         pages.append(Page(
             width=_num(p.get("width"), "largeur"), height=_num(p.get("height"), "hauteur"),
             background=dict(bg), id=_id(p),
@@ -190,10 +190,10 @@ def from_dict(data: dict, assets: dict[str, bytes] | None = None, source_pdf: by
             shapes=_layer(p, "shapes", _shape, "shape"),
         ))
     if not pages:
-        raise PlumeFormatError("note sans page")
+        raise FNoteFormatError("note sans page")
     ids = [p.id for p in pages] + [e.id for p in pages for e in p.elements()]
     if len(ids) != len(set(ids)):
-        raise PlumeFormatError("identifiants en double")
+        raise FNoteFormatError("identifiants en double")
     return Document(pages=pages, title=str(meta.get("title", "")), created=str(meta.get("created", "")),
                     modified=str(meta.get("modified", "")), source_pdf=source_pdf, assets=assets)
 
@@ -202,11 +202,11 @@ def _read(z: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int, budget: list[in
     """Lit une entrée en plafonnant sa taille ET le total réellement décompressé (budget partagé)."""
     limit = min(limit, budget[0])
     if info.file_size > limit:
-        raise PlumeFormatError(f"entrée trop volumineuse : {info.filename}")
+        raise FNoteFormatError(f"entrée trop volumineuse : {info.filename}")
     with z.open(info) as fh:
         data = fh.read(limit + 1)  # ne fait pas confiance à la taille déclarée
     if len(data) > limit:
-        raise PlumeFormatError(f"entrée trop volumineuse : {info.filename}")
+        raise FNoteFormatError(f"entrée trop volumineuse : {info.filename}")
     budget[0] -= len(data)
     return data
 
@@ -216,12 +216,12 @@ def load(path: str | os.PathLike) -> Document:
         with zipfile.ZipFile(path) as z:
             infos = {i.filename: i for i in z.infolist() if not i.is_dir()}
             if DOC_NAME not in infos:
-                raise PlumeFormatError("document.json absent")
+                raise FNoteFormatError("document.json absent")
             budget = [MAX_TOTAL]
             data = json.loads(_read(z, infos[DOC_NAME], MAX_JSON, budget))
             assets = {n: _read(z, i, MAX_ASSET, budget) for n, i in infos.items() if ASSET_RE.match(n)}
             pdf = _read(z, infos[PDF_NAME], MAX_PDF, budget) if PDF_NAME in infos else None
             # Toute autre entrée (y compris « ../ ») est ignorée : rien n'est extrait sur disque.
     except (zipfile.BadZipFile, json.JSONDecodeError, UnicodeDecodeError, EOFError) as exc:
-        raise PlumeFormatError(f"fichier .plume corrompu ({exc.__class__.__name__})") from exc
+        raise FNoteFormatError(f"fichier .fnote corrompu ({exc.__class__.__name__})") from exc
     return from_dict(data, assets, pdf)

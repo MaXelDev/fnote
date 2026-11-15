@@ -83,7 +83,7 @@ class DrawArea(QWidget):
 class TabletDebugWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Diagnostic du stylet — Plume")
+        self.setWindowTitle("Diagnostic du stylet — FNote")
         self.resize(900, 620)
         self.last_tablet: QPointF | None = None
         self.last_mouse: QPointF | None = None

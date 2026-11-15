@@ -29,7 +29,7 @@ SNAP_DEG, SNAP_TOL = 15.0, 3.0
 ACCENT = QColor("#26686c")
 
 CLIPBOARD: dict = {"elements": [], "assets": {}}  # presse-papiers interne, partagé entre onglets
-MIME_MARK = "application/x-plume-selection"
+MIME_MARK = "application/x-fnote-selection"
 
 
 class SelectionBar(QFrame):
@@ -89,6 +89,7 @@ def element_at(page, x: float, y: float, tol: float):
 
 class LassoTool(Tool):
     name = "lasso"
+    long_press_menu = True  # appui long immobile : menu Coller / Insérer…
     dot_color = ACCENT
 
     def __init__(self, canvas, state=None):
@@ -420,7 +421,7 @@ class LassoTool(Tool):
                   if isinstance(e, ImageItem) and e.asset in self.canvas.doc.assets}
         CLIPBOARD["elements"] = [replace(e) for e in self.selection]
         CLIPBOARD["assets"] = assets
-        # Presse-papiers système : marqueur Plume + image PNG pour les autres applis.
+        # Presse-papiers système : marqueur FNote + image PNG pour les autres applis.
         from PySide6.QtCore import QMimeData
         from PySide6.QtWidgets import QApplication
         mime = QMimeData()
@@ -475,14 +476,20 @@ def _dist(a: QPointF, b: QPointF) -> float:
     return math.hypot(a.x() - b.x(), a.y() - b.y())
 
 
-def paste(canvas, tool: "LassoTool | None" = None):
-    """Colle le presse-papiers interne sur la page courante (décalé), et le sélectionne."""
+def paste(canvas, tool: "LassoTool | None" = None, at_view: QPointF | None = None):
+    """Colle le presse-papiers interne et le sélectionne : à at_view (coin haut gauche),
+    sinon sur la page courante, décalé de l'original."""
     if not CLIPBOARD["elements"]:
         return False
     for name, data in CLIPBOARD["assets"].items():
         canvas.doc.assets.setdefault(name, data)
-    index = canvas.current_page()
-    copies = [tf.with_new_id(e, 16, 16) for e in CLIPBOARD["elements"]]
+    if at_view is not None:
+        index, pt = canvas.view_to_page(at_view)
+        x0, y0, _, _ = tf.bounds(CLIPBOARD["elements"])
+        dx, dy = pt.x() - x0, pt.y() - y0
+    else:
+        index, dx, dy = canvas.current_page(), 16, 16
+    copies = [tf.with_new_id(e, dx, dy) for e in CLIPBOARD["elements"]]
     canvas.apply(AddElements(canvas.doc.pages[index].id, copies))
     if tool is not None:
         tool.select(copies, index)

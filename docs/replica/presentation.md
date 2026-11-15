@@ -4,16 +4,16 @@ Adapté de `replica-launch` : pas de prix, pas de boutique mobile, pas de plan d
 
 | champ | valeur | limite |
 |---|---|---|
-| Nom | Plume | ≤ 30 car. ✔ |
+| Nom | FNote | ≤ 30 car. ✔ |
 | Résumé | Notes manuscrites et PDF annotés, au stylet | ≤ 35 car. (Flathub conseille ~35) ✔ |
-| Identifiant | `io.github.maxeldev.Plume` (proposé ; le lanceur actuel s'appelle `plume.desktop`) | — |
+| Identifiant | `io.github.maxeldev.FNote` (proposé ; le lanceur actuel s'appelle `fnote.desktop`) | — |
 | Catégorie | Office | — |
 | Licence | MIT (code) ; distribution liée à l'AGPL-3.0 via PyMuPDF | — |
 | Contenu | aucun réseau, aucun compte, aucune télémétrie | OARS : tout « none » |
 
 ## Description
 
-Plume est une application de prise de notes manuscrites pensée pour les PC portables convertibles à stylet sous Linux.
+FNote est une application de prise de notes manuscrites pensée pour les PC portables convertibles à stylet sous Linux.
 
 L'encre suit la pointe sans retard, le curseur disparaît pendant l'écriture et la paume posée sur l'écran ne dessine pas : on écrit comme sur une feuille.
 
@@ -28,7 +28,7 @@ Fonctionnalités :
 - images collées depuis le presse-papiers ;
 - notes rangées dans votre dossier (compatible Obsidian), avec un PDF à côté de chaque note.
 
-Plume fonctionne entièrement hors ligne.
+FNote fonctionne entièrement hors ligne.
 
 ## Captures (dans l'ordre)
 
@@ -48,7 +48,7 @@ notes ; manuscrit ; stylet ; PDF ; annoter ; surligneur ; tablette ; Wacom ; Obs
 
 - Aucun nom, logo, couleur ni texte de l'original dans la fiche ni dans l'application (`docs/replica/marque.md`, balayage propre).
 - Aucune « preuve » inventée : pas de témoignage, de note ni de nombre d'utilisateurs.
-- Le fichier `packaging/plume.desktop` passe `desktop-file-validate`.
+- Le fichier `packaging/fnote.desktop` passe `desktop-file-validate`.
 
 ## Non fait (et pourquoi)
 

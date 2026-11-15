@@ -1,6 +1,6 @@
-# Carte de reconnaissance : Samsung Notes (Windows / Android) → Plume (Linux, Qt)
+# Carte de reconnaissance : Samsung Notes (Windows / Android) → FNote (Linux, Qt)
 
-Périmètre : l'écriture manuscrite au stylet et l'annotation de PDF (section 7 de `PROMPT_Plume.md`), sans 7.12.
+Périmètre : l'écriture manuscrite au stylet et l'annotation de PDF (section 7 de `PROMPT_FNote.md`), sans 7.12.
 Pour : un étudiant ingénieur qui prend tous ses cours au S Pen sur un Galaxy Book 3 360 sous Fedora/Wayland.
 Date : 2026-11-14
 
@@ -19,7 +19,7 @@ Date : 2026-11-14
 | 6 | blog Samsung Insights (2025) | https://insights.samsung.com/2025/03/27/10-tips-for-increased-productivity-with-samsung-notes/ | astuces : formes, lasso, pages |
 | 7 | communauté Samsung (déc. 2025) | https://us.community.samsung.com/t5/Global-Content/Dec-25-Samsung-Notes-Updated-Features-Improvements-and-Tips/ba-p/3457468 | « Auto-fix Shapes » : dessiner puis maintenir |
 | 8 | Wikipédia | https://en.wikipedia.org/wiki/Samsung_Notes | plateformes, historique |
-| 9 | expérience de l'utilisateur | `PROMPT_Plume.md` §1 et §7 | usage réel quotidien sur Galaxy Book 3 360 |
+| 9 | expérience de l'utilisateur | `PROMPT_FNote.md` §1 et §7 | usage réel quotidien sur Galaxy Book 3 360 |
 
 ## Boucle principale
 
@@ -38,7 +38,7 @@ Ouvrir une note (ou un PDF de cours), écrire et surligner au stylet aussi fluid
 | S07 | Sélection lasso | outil lasso + contour | modifier une sélection | cadre, poignées, rotation, menu contextuel | rien de sélectionné, sélection multiple |
 | S08 | Règle virtuelle | bouton règle | traits droits | règle graduée en cm, angle affiché, poignée | masquée, affichée, aimantée |
 | S09 | Gestion des pages | bouton pages | réordonner, supprimer, insérer | miniatures, glisser-déposer | 1 page, nombreuses pages |
-| S10 | Panneau du vault | panneau latéral | trouver et organiser les notes | arborescence dossiers + `.plume` + `.pdf`, menu contextuel | vault vide, vault non choisi |
+| S10 | Panneau du vault | panneau latéral | trouver et organiser les notes | arborescence dossiers + `.fnote` + `.pdf`, menu contextuel | vault vide, vault non choisi |
 | S11 | Paramètres | menu | préférences | vault, courbe de pression, fond par défaut, bouton latéral, doigt dessine | — |
 | S12 | Choix du vault (1er lancement) | premier démarrage | définir le dossier racine | sélecteur de dossier | aucun vault, dossier introuvable |
 | S13 | Import PDF | menu / glisser un PDF | créer une note sur un PDF | sélecteur de fichier, progression | PDF chiffré ou corrompu |
