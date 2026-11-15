@@ -125,6 +125,11 @@ class Toolbar(QToolBar):
     def _toggle_shapes(self, on: bool):
         self.state.config.shape_recognition = on
         self.state.changed.emit()
+        win = self.window()
+        if hasattr(win, "statusBar"):  # un interrupteur sans retour se désactive sans qu'on le voie
+            win.statusBar().showMessage(
+                "Formes auto-corrigées activées : trace la forme puis garde le stylet immobile"
+                if on else "Formes auto-corrigées désactivées", 5000)
 
     def _open(self, popover, anchor):
         self._popover = popover
