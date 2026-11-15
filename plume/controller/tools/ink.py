@@ -27,6 +27,7 @@ HOLD_TOLERANCE_PX = 6.0  # tremblement toléré pendant le maintien (le S Pen bo
 
 class InkTool(Tool):
     tap_selects_images = True  # un simple appui sur une image la sélectionne (comme l'original)
+    long_press_menu = True  # appui long immobile : menu Coller / Insérer…
 
     def __init__(self, canvas, spec: dict):
         super().__init__(canvas)

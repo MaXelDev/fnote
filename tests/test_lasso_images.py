@@ -201,3 +201,39 @@ def test_pen_tap_on_image_selects_it():
     c._start(c.tool, p, .5, 0)
     c._finish(p, .5, 1)
     assert got == [item.id] and c.doc.pages[0].ink == []  # pas de point d'encre
+
+
+def test_long_press_opens_menu_without_ink(setup):
+    from plume.controller.tools.ink import InkTool
+    c, _, s = setup
+    c.set_tool(InkTool(c, {"tool": "fountain", "color": "#000000ff", "width": 2}))
+    got = []
+    c.longPressed.connect(lambda i, item, pos: got.append((i, item)))
+    n = len(list(c.doc.pages[0].elements()))
+    p = view(c, 300, 400)
+    c._start(c.tool, p, .5, 0)
+    c._move(p + QPointF(2, 1), .5, 1)  # tremblement toléré
+    c._long.timeout.emit()
+    assert got == [(0, None)] and c._active is None and c._held
+    assert len(list(c.doc.pages[0].elements())) == n  # aucun point d'encre
+    c._start(c.tool, view(c, 150, 100), .5, 0)  # sur un trait : il est renvoyé pour être sélectionné
+    c._long.timeout.emit()
+    assert got[-1] == (0, s)
+
+
+def test_long_press_cancelled_by_movement(setup):
+    from plume.controller.tools.ink import InkTool
+    c, _, _ = setup
+    c.set_tool(InkTool(c, {"tool": "fountain", "color": "#000000ff", "width": 2}))
+    c._start(c.tool, view(c, 300, 400), .5, 0)
+    c._move(view(c, 340, 400), .5, 1)
+    assert not c._long.isActive()
+
+
+def test_paste_at_position(setup):
+    c, tool, s = setup
+    lasso_all(c, tool)
+    tool.copy()
+    paste(c, tool, at_view=view(c, 300, 500))
+    x0, y0, _, _ = tool.selection[0].bounds()
+    assert abs(x0 - 300) < 0.5 and abs(y0 - 500) < 0.5
