@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
         tab.canvas.tool.select(list(tab.canvas.doc.pages[index].elements()), index)
 
     def paste(self, at_view=None):
-        """Ctrl+V : sélection copiée dans Plume, sinon image du presse-papiers système."""
+        """Ctrl+V : sélection copiée dans FNote, sinon image du presse-papiers système."""
         from PySide6.QtWidgets import QApplication
         from ..controller import images
         from ..controller.tools.lasso import CLIPBOARD, MIME_MARK, paste
@@ -412,7 +412,7 @@ class MainWindow(QMainWindow):
         name = name.strip().replace("/", "-")
         if not ok or not name:
             return
-        path = Path(folder) / f"{name}.plume"
+        path = Path(folder) / f"{name}.fnote"
         if path.exists():
             QMessageBox.warning(self, "Nom déjà pris", f"« {path.name} » existe déjà.")
             return
@@ -441,13 +441,13 @@ class MainWindow(QMainWindow):
 
     def open_dialog(self) -> None:
         start = str(self.vault() or Path.home())
-        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une note", start, "Notes Plume (*.plume)")
+        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une note", start, "Notes FNote (*.fnote *.plume)")
         if path:
             self.open_file(Path(path))
 
     def open_file(self, path: Path) -> None:
         path = Path(path)
-        if path.suffix.lower() == ".pdf":  # « Ouvrir avec Plume » sur un PDF : on l'annote
+        if path.suffix.lower() == ".pdf":  # « Ouvrir avec FNote » sur un PDF : on l'annote
             self.import_pdf(path)
             return
         for i in range(self.tabs.count()):
@@ -457,7 +457,7 @@ class MainWindow(QMainWindow):
                 return
         try:
             ctl = DocumentController.open(path, self.config)
-        except (OSError, serialization.PlumeFormatError) as exc:
+        except (OSError, serialization.FNoteFormatError) as exc:
             QMessageBox.critical(self, "Impossible d'ouvrir la note", f"{path.name} : {exc}")
             return
         self._add_tab(ctl)
@@ -514,7 +514,7 @@ class MainWindow(QMainWindow):
             self.import_pdf(Path(path))
 
     def import_pdf(self, pdf_path: Path, folder: Path | None = None) -> None:
-        """Crée « Nom (annoté).plume » (dans le vault si le PDF est hors du vault) et l'ouvre."""
+        """Crée « Nom (annoté).fnote » (dans le vault si le PDF est hors du vault) et l'ouvre."""
         from ..pdf.importer import PdfImportError, import_pdf, note_path_for
         try:
             doc = import_pdf(pdf_path)
@@ -560,8 +560,8 @@ class MainWindow(QMainWindow):
 
     def _update_title(self) -> None:
         tab = self.current_tab()
-        name = tab.ctl.title if tab else "Plume"
-        self.setWindowTitle(f"{name} — Plume" if tab else "Plume")
+        name = tab.ctl.title if tab else "FNote"
+        self.setWindowTitle(f"{name} — FNote" if tab else "FNote")
 
     def closeEvent(self, event):
         for tab in self.note_tabs():

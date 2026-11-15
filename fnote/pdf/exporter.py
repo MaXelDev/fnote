@@ -21,7 +21,7 @@ from ..model.elements import ImageItem, Shape, Stroke
 from ..model.serialization import atomic_write
 from ..view.render import MM, PAGE_STYLE
 
-PRODUCER = "Plume"
+PRODUCER = "FNote"
 
 
 def _rgb(hex_rgba: str) -> tuple[tuple[float, float, float], float]:
@@ -181,10 +181,10 @@ def export_to_file(doc, curve: PressureCurve, path) -> None:
     atomic_write(path, lambda fh: fh.write(data))
 
 
-def is_plume_pdf(path) -> bool:
-    """Le fichier est-il un PDF produit par Plume (donc remplaçable sans risque) ?"""
+def is_fnote_pdf(path) -> bool:
+    """Le fichier est-il un PDF produit par FNote (donc remplaçable sans risque) ?"""
     try:
         with pymupdf.open(path) as d:
-            return (d.metadata or {}).get("producer") == PRODUCER
+            return (d.metadata or {}).get("producer") in (PRODUCER, "Plume")  # ancien nom de l'appli
     except Exception:
         return False

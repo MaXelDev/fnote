@@ -29,7 +29,7 @@ SNAP_DEG, SNAP_TOL = 15.0, 3.0
 ACCENT = QColor("#26686c")
 
 CLIPBOARD: dict = {"elements": [], "assets": {}}  # presse-papiers interne, partagé entre onglets
-MIME_MARK = "application/x-plume-selection"
+MIME_MARK = "application/x-fnote-selection"
 
 
 class SelectionBar(QFrame):
@@ -421,7 +421,7 @@ class LassoTool(Tool):
                   if isinstance(e, ImageItem) and e.asset in self.canvas.doc.assets}
         CLIPBOARD["elements"] = [replace(e) for e in self.selection]
         CLIPBOARD["assets"] = assets
-        # Presse-papiers système : marqueur Plume + image PNG pour les autres applis.
+        # Presse-papiers système : marqueur FNote + image PNG pour les autres applis.
         from PySide6.QtCore import QMimeData
         from PySide6.QtWidgets import QApplication
         mime = QMimeData()

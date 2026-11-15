@@ -1,4 +1,4 @@
-# Ce que les utilisateurs détestent et réclament : pièges à éviter pour Plume
+# Ce que les utilisateurs détestent et réclament : pièges à éviter pour FNote
 
 **Échantillon : 52 avis réels, 4 sources** (`reviews.csv`, classement brut dans `feedback.md`).
 - 23 tickets GitHub de Rnote, 19 de Xournal++ (les plus votés sur la fluidité, le stylet, le PDF, le surligneur, la gomme et les formes) ;
@@ -94,4 +94,4 @@ Les citations sont en version originale et exacte, avec leur lien.
 
 Le positionnement commercial est ignoré, comme demandé. Phrase directrice du projet :
 
-> Pour l'étudiant qui écrit ses cours au stylet sous Fedora/Wayland et qui fuit les applis où l'encre traîne et où le curseur reste affiché, Plume écrit comme sur une feuille, annote ses PDF de cours et range tout dans son vault Obsidian.
+> Pour l'étudiant qui écrit ses cours au stylet sous Fedora/Wayland et qui fuit les applis où l'encre traîne et où le curseur reste affiché, FNote écrit comme sur une feuille, annote ses PDF de cours et range tout dans son vault Obsidian.

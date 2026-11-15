@@ -1,8 +1,9 @@
-"""Paramètres utilisateur : ~/.config/plume/config.json (respecte $XDG_CONFIG_HOME)."""
+"""Paramètres utilisateur : ~/.config/fnote/config.json (respecte $XDG_CONFIG_HOME)."""
 from __future__ import annotations
 
 import json
 import os
+import shutil
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
@@ -13,7 +14,12 @@ CONFIG_VERSION = 1
 
 def config_path() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
-    return Path(base) / "plume" / "config.json"
+    path = Path(base) / "fnote" / "config.json"
+    old = Path(base) / "plume" / "config.json"  # ancien nom de l'appli : on reprend ses paramètres
+    if not path.exists() and old.is_file():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old, path)
+    return path
 
 
 def _default_favorites() -> list[dict]:

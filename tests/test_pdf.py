@@ -8,13 +8,13 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 from PySide6.QtGui import QColor, QImage  # noqa: E402
 
-from plume.engine.pressure import PressureCurve  # noqa: E402
-from plume.model import serialization  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.model.elements import ImageItem, Shape, Stroke  # noqa: E402
-from plume.pdf.exporter import export_document, export_to_file, is_plume_pdf  # noqa: E402
-from plume.pdf.importer import PdfImportError, import_pdf, note_path_for  # noqa: E402
-from plume.pdf.source import PdfSource  # noqa: E402
+from fnote.engine.pressure import PressureCurve  # noqa: E402
+from fnote.model import serialization  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.model.elements import ImageItem, Shape, Stroke  # noqa: E402
+from fnote.pdf.exporter import export_document, export_to_file, is_fnote_pdf  # noqa: E402
+from fnote.pdf.importer import PdfImportError, import_pdf, note_path_for  # noqa: E402
+from fnote.pdf.source import PdfSource  # noqa: E402
 
 app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
@@ -50,9 +50,9 @@ def test_import_errors(tmp_path):
 def test_note_path_never_overwrites_source(tmp_path):
     pdf = make_pdf(tmp_path / "Cours.pdf", 1)
     p = note_path_for(pdf)
-    assert p.name == "Cours (annoté).plume" and p.with_suffix(".pdf") != pdf
+    assert p.name == "Cours (annoté).fnote" and p.with_suffix(".pdf") != pdf
     p.write_bytes(b"x")
-    assert note_path_for(pdf).name == "Cours (annoté 2).plume"
+    assert note_path_for(pdf).name == "Cours (annoté 2).fnote"
 
 
 def test_render_background():
@@ -73,7 +73,7 @@ def test_export_keeps_text_and_vector_ink(tmp_path):
     doc.pages[0].add(Shape(kind="ellipse", geometry=[(50, 50), (150, 50), (150, 100), (50, 100)], color="#d32f2fff"))
     img = QImage(40, 20, QImage.Format.Format_RGB32)
     img.fill(QColor("#00ff00"))
-    from plume.controller.images import to_png
+    from fnote.controller.images import to_png
     doc.assets["assets/0123456789abcdef.png"] = to_png(img)
     doc.pages[1].add(ImageItem(asset="assets/0123456789abcdef.png", rect=(10, 10, 80, 40), rotation=30))
     out = pymupdf.open(stream=export_document(doc, PressureCurve()), filetype="pdf")
@@ -84,7 +84,7 @@ def test_export_keeps_text_and_vector_ink(tmp_path):
     assert any(d.get("fill") and abs(d["fill"][2] - 0x1f / 255 * 0 - 0xd1 / 255) < 0.02 for d in drawings)
     assert not out[0].get_images()  # l'encre n'est pas une image
     assert out[1].get_images()       # l'image insérée, elle, en est une
-    assert out.metadata["producer"] == "Plume"
+    assert out.metadata["producer"] == "FNote"
 
 
 def test_export_note_without_pdf_and_atomic_file(tmp_path):
@@ -92,15 +92,15 @@ def test_export_note_without_pdf_and_atomic_file(tmp_path):
     doc.pages[0].add(Stroke(points=[(10, 10, .5, 0), (100, 100, .5, 1)]))
     path = tmp_path / "Note.pdf"
     export_to_file(doc, PressureCurve(), path)
-    assert is_plume_pdf(path) and pymupdf.open(path).page_count == 2
+    assert is_fnote_pdf(path) and pymupdf.open(path).page_count == 2
     other = make_pdf(tmp_path / "autre.pdf", 1)
-    assert not is_plume_pdf(other)
+    assert not is_fnote_pdf(other)
 
 
-def test_round_trip_plume_with_pdf(tmp_path):
+def test_round_trip_fnote_with_pdf(tmp_path):
     doc = import_pdf(make_pdf(tmp_path / "td.pdf", 2))
-    serialization.save(doc, tmp_path / "td.plume")
-    back = serialization.load(tmp_path / "td.plume")
+    serialization.save(doc, tmp_path / "td.fnote")
+    back = serialization.load(tmp_path / "td.fnote")
     assert back.source_pdf == doc.source_pdf and back.pages[1].background["pdf_page"] == 1
 
 
@@ -113,35 +113,35 @@ def test_highlighter_uses_multiply_in_pdf():
 
 def test_companion_export_and_protection(tmp_path):
     from PySide6.QtCore import QThreadPool
-    from plume.controller.document_controller import DocumentController
-    from plume.model.config import Config
-    from plume.pdf.companion import CompanionExporter
-    ctl = DocumentController(Document(), tmp_path / "Note.plume", Config())
+    from fnote.controller.document_controller import DocumentController
+    from fnote.model.config import Config
+    from fnote.pdf.companion import CompanionExporter
+    ctl = DocumentController(Document(), tmp_path / "Note.fnote", Config())
     exp = CompanionExporter()
     assert exp.export(ctl, PressureCurve())
     QThreadPool.globalInstance().waitForDone(10000)
-    assert is_plume_pdf(tmp_path / "Note.pdf")
+    assert is_fnote_pdf(tmp_path / "Note.pdf")
     # un PDF étranger du même nom n'est jamais écrasé
     make_pdf(tmp_path / "Cours.pdf", 1)
     before = (tmp_path / "Cours.pdf").read_bytes()
     skipped = []
     exp.skipped.connect(skipped.append)
-    assert not exp.export(DocumentController(Document(), tmp_path / "Cours.plume", Config()), PressureCurve())
+    assert not exp.export(DocumentController(Document(), tmp_path / "Cours.fnote", Config()), PressureCurve())
     assert skipped and (tmp_path / "Cours.pdf").read_bytes() == before
 
 
 def test_template_pages_repeat_but_imported_pdf_pages_do_not(tmp_path):
     import pymupdf
-    from plume.model import serialization
-    from plume.model.document import next_background
-    from plume.pdf.importer import import_pdf, template_document
+    from fnote.model import serialization
+    from fnote.model.document import next_background
+    from fnote.pdf.importer import import_pdf, template_document
     d = pymupdf.open()
     d.new_page()
     d.save(tmp_path / "Feuille lignée.pdf")
     doc = template_document(tmp_path / "Feuille lignée.pdf", "Maths")
     assert doc.title == "Maths" and doc.pages[0].background == {"kind": "pdf", "pdf_page": 0, "template": True}
     assert next_background(doc.pages[0], "blank") == doc.pages[0].background  # la page suivante répète le modèle
-    serialization.save(doc, tmp_path / "Maths.plume")
-    assert serialization.load(tmp_path / "Maths.plume").pages[0].background["template"] is True
+    serialization.save(doc, tmp_path / "Maths.fnote")
+    assert serialization.load(tmp_path / "Maths.fnote").pages[0].background["template"] is True
     cours = import_pdf(tmp_path / "Feuille lignée.pdf")
     assert next_background(cours.pages[0], "lined") == {"kind": "lined"}  # un cours importé : fond par défaut

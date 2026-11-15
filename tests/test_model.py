@@ -1,6 +1,6 @@
-from plume.model.document import Document, Page
-from plume.model.elements import ImageItem, Shape, Stroke
-from plume.model.history import AddElements, AddPage, History, RemoveElements, ReplaceElements
+from fnote.model.document import Document, Page
+from fnote.model.elements import ImageItem, Shape, Stroke
+from fnote.model.history import AddElements, AddPage, History, RemoveElements, ReplaceElements
 
 
 def stroke(tool="fountain", x=10.0):
@@ -96,7 +96,7 @@ def test_group_is_one_undo_step():
 
 
 def test_page_commands_and_revision():
-    from plume.model.history import MovePage, RemovePage, SetBackground
+    from fnote.model.history import MovePage, RemovePage, SetBackground
     doc = Document(pages=[Page(), Page(), Page()])
     first, second, third = doc.pages
     h = History(doc)

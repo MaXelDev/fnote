@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QListWidgetItem
 
 from . import icons
 
-LOGO = Path(__file__).resolve().parent.parent / "resources" / "plume.svg"
+LOGO = Path(__file__).resolve().parent.parent / "resources" / "fnote.svg"
 
 
 class Welcome(QWidget):
@@ -33,7 +33,7 @@ class Welcome(QWidget):
         if not pm.isNull():
             logo.setPixmap(pm.scaled(88, 88, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title = QLabel("Plume")
+        title = QLabel("FNote")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 28px; font-weight: 700;")
         self.subtitle = QLabel()
@@ -80,7 +80,7 @@ class Welcome(QWidget):
             "Tes notes manuscrites, au stylet, dans ton vault Obsidian. Tout reste sur ton ordinateur."
             if has_vault else
             "Bienvenue ! Choisis le dossier où ranger tes notes (ton vault Obsidian, par exemple). "
-            "Plume n'utilise ni compte ni Internet : tout reste sur ton ordinateur.")
+            "FNote n'utilise ni compte ni Internet : tout reste sur ton ordinateur.")
         self.recent.clear()
         recents = [Path(p) for p in self.config.recent_files if Path(p).exists()]
         for p in recents:

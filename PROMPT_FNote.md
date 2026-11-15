@@ -1,6 +1,6 @@
-# Projet « Plume » — application de prise de notes manuscrites pour Fedora
+# Projet « FNote » — application de prise de notes manuscrites pour Fedora
 
-> Prompt à donner à Claude Code. Place ce fichier à la racine d'un dossier vide (ex. `~/Projets/plume/`), vérifie que `gh auth status` indique que tu es connecté à GitHub, lance `claude` dans ce dossier et dis : « Lis PROMPT_Plume.md et commence la phase 0. »
+> Prompt à donner à Claude Code. Place ce fichier à la racine d'un dossier vide (ex. `~/Projets/fnote/`), vérifie que `gh auth status` indique que tu es connecté à GitHub, lance `claude` dans ce dossier et dis : « Lis PROMPT_FNote.md et commence la phase 0. »
 
 ---
 
@@ -33,12 +33,12 @@ Ces deux points sont **les critères n°1 du projet**. Une fonctionnalité de pl
 ## 4. Architecture
 
 ```
-plume/
+fnote/
 ├── app.py                  # point d'entrée, QApplication, config Wayland
 ├── model/
 │   ├── document.py         # Document → Pages → Calques → Éléments
 │   ├── elements.py         # Stroke, Highlight, Shape, ImageItem
-│   ├── serialization.py    # lecture/écriture du format .plume
+│   ├── serialization.py    # lecture/écriture du format .fnote
 │   └── history.py          # undo/redo (pattern Command)
 ├── view/
 │   ├── canvas.py           # widget de dessin principal (rendu + événements)
@@ -65,10 +65,10 @@ plume/
 - `Page` : fond (`blank`, `lined`, `grid`, `dots`, ou page N d'un PDF), et des calques dans cet ordre de rendu : **fond → surlignages → images → encre → formes**. Le surligneur passe toujours *sous* l'encre.
 - `Stroke` : liste de points `(x, y, pression, timestamp)` en coordonnées de page (unités indépendantes du zoom), couleur RGBA, épaisseur de base, outil.
 
-### Format de fichier `.plume`
-- Une note = **un fichier `.plume`** = une archive ZIP contenant `document.json` (traits vectoriels, versionné avec un champ `format_version`), un dossier `assets/` (images insérées) et le PDF source s'il y en a un.
+### Format de fichier `.fnote`
+- Une note = **un fichier `.fnote`** = une archive ZIP contenant `document.json` (traits vectoriels, versionné avec un champ `format_version`), un dossier `assets/` (images insérées) et le PDF source s'il y en a un.
 - **Sauvegarde atomique** (écrire dans un fichier temporaire puis `os.replace`) + sauvegarde automatique après quelques secondes d'inactivité. Jamais de perte de données en cas de crash.
-- **Export compagnon pour Obsidian** : à chaque sauvegarde (option activable), générer `NomDeLaNote.pdf` à côté du `.plume`, pour que je puisse l'intégrer dans mes notes Obsidian avec `![[NomDeLaNote.pdf]]`.
+- **Export compagnon pour Obsidian** : à chaque sauvegarde (option activable), générer `NomDeLaNote.pdf` à côté du `.fnote`, pour que je puisse l'intégrer dans mes notes Obsidian avec `![[NomDeLaNote.pdf]]`.
 
 ## 5. Exigences de fluidité (critiques)
 
@@ -144,9 +144,9 @@ Mets en place et respecte ces règles dès la phase 1 :
 - Annuler/Rétablir illimité dans la session (Ctrl+Z / Ctrl+Y + boutons dans la barre d'outils, accessibles au stylet).
 
 ### 7.11 Gestion des notes
-- Panneau latéral montrant l'arborescence de mon vault (dossiers + fichiers `.plume` et `.pdf`), création de dossiers et de notes, renommage, déplacement, suppression (vers la corbeille système).
+- Panneau latéral montrant l'arborescence de mon vault (dossiers + fichiers `.fnote` et `.pdf`), création de dossiers et de notes, renommage, déplacement, suppression (vers la corbeille système).
 - Ouvrir plusieurs notes en onglets.
-- Paramètres stockés dans `~/.config/plume/config.json` (chemin du vault, stylos favoris, palette, courbe de pression…).
+- Paramètres stockés dans `~/.config/fnote/config.json` (chemin du vault, stylos favoris, palette, courbe de pression…).
 
 ### 7.12 Hors périmètre (ne pas faire)
 Synchronisation/cloud, connexion entre appareils, recherche dans l'écriture manuscrite (OCR), texte tapé, compatibilité Windows/macOS, enregistrement audio.
@@ -173,7 +173,7 @@ Ensuite, attends mon retour avant de passer à la phase suivante.
 
 Le projet vit dans un **dépôt GitHub dès la phase 0**, pour pouvoir revenir en arrière à tout moment si quelque chose casse.
 
-- **Création** : `git init`, puis `gh repo create plume --source=. --push`. Demande-moi avant si le dépôt doit être **public** ou **privé**.
+- **Création** : `git init`, puis `gh repo create fnote --source=. --push`. Demande-moi avant si le dépôt doit être **public** ou **privé**.
 - **`.gitignore`** dès le premier commit : `.venv/`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, fichiers de config locale. **Ne jamais committer de notes, de PDF de cours ni le chemin de mon vault.**
 - **Commits petits et fréquents** : un commit = **un seul changement cohérent** (une classe, un outil, un correctif, un test), jamais plusieurs fonctionnalités mélangées. Si un commit touche plus de ~200 lignes, découpe-le.
 - **Avant chaque commit** : les tests passent (`pytest`) et l'appli se lance. On ne committe jamais du code cassé sur `main`.
@@ -195,13 +195,13 @@ Règles communes à tous les skills Replica :
 - Ces skills sont conçus pour des applis web/mobiles avec serveur : **adapte-les** à une appli de bureau Qt 100 % locale. Quand une partie du skill ne s'applique pas (SQL, API web, Stripe, auth, domaine, stores mobiles), saute-la et dis-moi ce que tu as adapté.
 - Range tous leurs livrables dans `docs/replica/` et committe-les.
 
-| Skill | Quand | Ce que j'attends, adapté à Plume |
+| Skill | Quand | Ce que j'attends, adapté à FNote |
 |---|---|---|
 | `replica-recon` | Phase 0, en premier | Cartographie de Samsung Notes : écrans, parcours (créer une note, annoter un PDF, surligner, lasso…), modèle de données, **matrice de fonctionnalités** priorisée (`docs/replica/fonctionnalites.md`). Cette matrice devient la checklist de tout le projet. |
 | `replica-entrepreneur` | Phase 0, juste après | Analyse des avis d'utilisateurs de Samsung Notes, Xournal++, Rnote et AirNote : ce qu'ils adorent, ce qu'ils détestent (fluidité, curseur, PDF…). Ignore le positionnement commercial. Sers-t'en pour ajuster les priorités de la matrice et me signaler des pièges à éviter. |
-| `replica-architect` | Phase 0 | Stack et modèle de données. Remplace le « schéma SQL » par le **schéma JSON versionné du format `.plume`**, et l'« API » par les **interfaces entre modèle, vues et contrôleurs** (section 4). Rédige-le dans `docs/replica/architecture.md`. |
+| `replica-architect` | Phase 0 | Stack et modèle de données. Remplace le « schéma SQL » par le **schéma JSON versionné du format `.fnote`**, et l'« API » par les **interfaces entre modèle, vues et contrôleurs** (section 4). Rédige-le dans `docs/replica/architecture.md`. |
 | `replica-design` | Phase 0 (tokens), phases 2 et 6 | Design system adapté à Qt : couleurs, palette d'encre et de surligneur, tailles de boutons utilisables au stylet, icônes, contraste WCAG, thème clair/sombre. Les tokens doivent être appliqués dans un fichier de style Qt (QSS) centralisé. |
-| `replica-backend` | Phases 0, 1 et 5 | Pas de serveur ici : utilise-le uniquement pour la **couche de persistance locale** (lecture/écriture `.plume`, sauvegarde atomique, sauvegarde automatique) et les **tâches en arrière-plan** (export PDF compagnon, rendu des caches). Ignore auth, base de données distante, Stripe, emails. |
+| `replica-backend` | Phases 0, 1 et 5 | Pas de serveur ici : utilise-le uniquement pour la **couche de persistance locale** (lecture/écriture `.fnote`, sauvegarde atomique, sauvegarde automatique) et les **tâches en arrière-plan** (export PDF compagnon, rendu des caches). Ignore auth, base de données distante, Stripe, emails. |
 | `replica-build` | Toutes les phases | Construction écran par écran et outil par outil, **dans l'ordre des phases (section 12)** et en suivant la matrice. Chaque élément construit = un ou plusieurs petits commits (section 10). |
 | `replica-diff` | **Fin de chaque phase** et fin du projet | Score de parité avec la matrice (périmètre section 7) et liste de ce qui manque ou diffère. Mets le résultat dans la description de la PR de la phase. |
 | `replica-brand` | Phase 6 (et vérification en fin de chaque phase) | Nom définitif, palette, logo simple et ton de l'appli, et surtout **recherche des restes de l'original** : aucune référence à Samsung ne doit rester (noms, icônes, textes, commentaires). |
@@ -213,7 +213,7 @@ Règles communes à tous les skills Replica :
 **Démarrage (phase 0)**
 - `init` : génère le `CLAUDE.md` du projet ; recopies-y les règles essentielles de ce prompt (contraintes, fluidité, règles de commit, usage du pack Replica) pour qu'elles restent en mémoire d'une session à l'autre.
 - `claude-code-setup:claude-automation-recommender` : propose les hooks utiles (ex. lancer `pytest` avant chaque commit, vérifier l'absence d'import réseau). Montre-moi ses recommandations avant de les appliquer.
-- `engineering:architecture` : rédige un ADR (`docs/adr/0001-stack.md`) justifiant PySide6 + PyMuPDF + format `.plume`, en s'appuyant sur le livrable de `replica-architect`.
+- `engineering:architecture` : rédige un ADR (`docs/adr/0001-stack.md`) justifiant PySide6 + PyMuPDF + format `.fnote`, en s'appuyant sur le livrable de `replica-architect`.
 - `engineering:testing-strategy` : plan de tests (`docs/tests.md`) : ce qui est testé automatiquement et ce qui passe par mes checklists manuelles.
 
 **Pendant chaque phase**
@@ -228,7 +228,7 @@ Règles communes à tous les skills Replica :
 - `simplify` : nettoie le code modifié.
 - `code-review` (ou `ponytail-review`) : revue du diff de la branche.
 - `ponytail-debt` : liste les raccourcis `shortcut:` laissés, à mettre dans la description de la PR.
-- `security-review` : vérifie notamment qu'aucun accès réseau ne s'est glissé et que la lecture des fichiers (ZIP `.plume`, PDF importés) est sûre.
+- `security-review` : vérifie notamment qu'aucun accès réseau ne s'est glissé et que la lecture des fichiers (ZIP `.fnote`, PDF importés) est sûre.
 
 **Fin du projet (phase 6)**
 - `replica-diff`, `replica-brand`, `replica-launch`, `replica-deploy` (voir 11.1).
@@ -241,7 +241,7 @@ Règles communes à tous les skills Replica :
 
 Chaque phase se construit avec `replica-build` et se termine par `replica-diff` (score de parité dans la PR).
 
-- **Phase 0 — Recon et squelette** : dépôt GitHub (section 10) ; `replica-recon` → `replica-entrepreneur` → `replica-architect` → `replica-design` (tokens) ; `init`, `claude-automation-recommender`, ADR et plan de tests ; structure du projet, venv, `pyproject.toml`, fenêtre principale, choix du vault, format `.plume` (sauvegarde/chargement, avec `replica-backend` pour la persistance), fenêtre `--debug-tablet`, test « aucun import réseau ». **Montre-moi la matrice de fonctionnalités et l'analyse des avis avant d'écrire le code.**
+- **Phase 0 — Recon et squelette** : dépôt GitHub (section 10) ; `replica-recon` → `replica-entrepreneur` → `replica-architect` → `replica-design` (tokens) ; `init`, `claude-automation-recommender`, ADR et plan de tests ; structure du projet, venv, `pyproject.toml`, fenêtre principale, choix du vault, format `.fnote` (sauvegarde/chargement, avec `replica-backend` pour la persistance), fenêtre `--debug-tablet`, test « aucun import réseau ». **Montre-moi la matrice de fonctionnalités et l'analyse des avis avant d'écrire le code.**
 - **Phase 1 — Moteur d'encre (le plus important)** : canevas multi-pages, stylo avec pression, lissage, cache de rendu (tâches de fond via `replica-backend`), curseur caché + point de survol, rejet de la paume, défilement/zoom au doigt, undo/redo, sauvegarde auto. **Ne passe pas à la suite tant que je n'ai pas validé que l'écriture est fluide.**
 - **Phase 2 — Outils de base** : couleurs (palette + RGB/HEX + récents), stylos favoris, surligneur, gomme (deux modes), fonds de page, gestion des pages. Barre d'outils construite avec les tokens de `replica-design`.
 - **Phase 3 — Lasso et images**.

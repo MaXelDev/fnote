@@ -2,9 +2,9 @@ import math
 
 import numpy as np
 
-from plume.engine import transform as tf
-from plume.model.document import Page
-from plume.model.elements import ImageItem, Shape, Stroke
+from fnote.engine import transform as tf
+from fnote.model.document import Page
+from fnote.model.elements import ImageItem, Shape, Stroke
 
 
 def stroke(x0=0.0):

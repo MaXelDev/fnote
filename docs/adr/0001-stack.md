@@ -1,4 +1,4 @@
-# ADR-0001 : PySide6 + PyMuPDF + format `.plume`
+# ADR-0001 : PySide6 + PyMuPDF + format `.fnote`
 
 **Statut :** Accepté (stack imposée par le cahier des charges, justifiée ici)
 **Date :** 2026-11-14
@@ -6,7 +6,7 @@
 
 ## Contexte
 
-Plume doit offrir une écriture au stylet aussi fluide que Samsung Notes, sur un Galaxy Book 3 360 (numériseur Wacom) sous Fedora / GNOME **Wayland**, 100 % hors ligne, avec des notes rangées dans un vault Obsidian. Les avis analysés (`docs/replica/fixes.md`) montrent que les échecs des alternatives viennent surtout de la **gestion du stylet** (pression ignorée, curseur affiché, décalage à l'échelle 200 %) et de la **latence**. L'utilisateur connaît Python et le pattern MVC.
+FNote doit offrir une écriture au stylet aussi fluide que Samsung Notes, sur un Galaxy Book 3 360 (numériseur Wacom) sous Fedora / GNOME **Wayland**, 100 % hors ligne, avec des notes rangées dans un vault Obsidian. Les avis analysés (`docs/replica/fixes.md`) montrent que les échecs des alternatives viennent surtout de la **gestion du stylet** (pression ignorée, curseur affiché, décalage à l'échelle 200 %) et de la **latence**. L'utilisateur connaît Python et le pattern MVC.
 
 Contraintes :
 - pression, inclinaison, **proximité** du stylet sous Wayland ;
@@ -18,7 +18,7 @@ Contraintes :
 
 1. **UI : PySide6 (Qt 6)**, canevas `QWidget` + `QPainter` maison avec cache bitmap par page.
 2. **PDF : PyMuPDF** pour le rendu des fonds et l'export vectoriel.
-3. **Format : `.plume` = ZIP** contenant `document.json` versionné (`format_version`), `assets/` et le PDF source, écrit de façon atomique.
+3. **Format : `.fnote` = ZIP** contenant `document.json` versionné (`format_version`), `assets/` et le PDF source, écrit de façon atomique.
 
 ## Options envisagées
 
@@ -43,7 +43,7 @@ Contraintes :
 | QtPdf (`QPdfDocument`) | Bon | ✘ (lecture seule) | LGPL |
 | pypdf + reportlab | ✘ pas de rendu | ✔ mais deux bibliothèques, rendu absent | BSD |
 
-**PyMuPDF** retenu : seul à couvrir rendu **et** écriture vectorielle. Conséquence de licence : le code de Plume reste MIT, mais **toute distribution qui embarque PyMuPDF est soumise à l'AGPL-3.0** (à rappeler dans le README et la release ; sans effet pour un usage personnel).
+**PyMuPDF** retenu : seul à couvrir rendu **et** écriture vectorielle. Conséquence de licence : le code de FNote reste MIT, mais **toute distribution qui embarque PyMuPDF est soumise à l'AGPL-3.0** (à rappeler dans le README et la release ; sans effet pour un usage personnel).
 
 ### Format de fichier
 
@@ -71,6 +71,6 @@ Contraintes :
 
 ## Actions
 
-1. [x] Squelette, modèle, `.plume` atomique et sécurisé, diagnostic stylet (phase 0)
+1. [x] Squelette, modèle, `.fnote` atomique et sécurisé, diagnostic stylet (phase 0)
 2. [ ] Mesurer latence et fps en phase 1 ; décider si `QOpenGLWidget` est nécessaire
 3. [ ] Mention de licence AGPL (PyMuPDF) dans README et release (phase 6)

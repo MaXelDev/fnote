@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from plume.engine.shape_recognition import recognize
+from fnote.engine.shape_recognition import recognize
 
 rng = np.random.default_rng(42)
 

@@ -12,7 +12,7 @@ Date : 2026-11-14. Score calculé par `replica-diff/parity.py` sur `features.csv
 | 5 — PDF | 90,4 | 40 / 44 |
 | 6 — finition | **100,0** | **44 / 44** |
 
-Les 7 correctifs issus des avis réels (`fixes.md`) et les fonctions propres à Plume (format `.plume`, export compagnon Obsidian, `--debug-tablet`, `--debug-perf`) sont aussi faits. Hors périmètre, volontairement : cloud, OCR, texte tapé, audio, assistant IA, collaboration, Windows/macOS.
+Les 7 correctifs issus des avis réels (`fixes.md`) et les fonctions propres à FNote (format `.fnote`, export compagnon Obsidian, `--debug-tablet`, `--debug-perf`) sont aussi faits. Hors périmètre, volontairement : cloud, OCR, texte tapé, audio, assistant IA, collaboration, Windows/macOS.
 
 **Verdict : meilleur que l'original sur la cible visée.** Toutes les fonctions indispensables sont là, et les défauts les plus cités des alternatives libres sont corrigés : encre en retard, curseur affiché, surligneur à opacité irrégulière, gomme qui saute des traits, outils éparpillés. S'y ajoute ce que l'original ne fait pas : règle virtuelle, fichiers dans le vault Obsidian, 100 % hors ligne.
 

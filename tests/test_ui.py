@@ -6,9 +6,9 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 
-from plume.model.config import Config  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.model import serialization  # noqa: E402
+from fnote.model.config import Config  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.model import serialization  # noqa: E402
 
 app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
@@ -16,8 +16,8 @@ app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 @pytest.fixture
 def window(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
-    from plume.view.main_window import MainWindow
-    path = tmp_path / "Cours.plume"
+    from fnote.view.main_window import MainWindow
+    path = tmp_path / "Cours.fnote"
     serialization.save(Document(pages=[Page(), Page()]), path)
     w = MainWindow(Config(vault_path=str(tmp_path)), str(path))
     w.show()
@@ -27,8 +27,8 @@ def window(tmp_path, monkeypatch):
 
 
 def test_tools_switch_and_popovers(window):
-    from plume.controller.tools.eraser import EraserTool
-    from plume.view.popovers import EraserPopover, HighlighterPopover, PenPopover
+    from fnote.controller.tools.eraser import EraserTool
+    from fnote.view.popovers import EraserPopover, HighlighterPopover, PenPopover
     tb = window.toolbar
     tb.buttons["eraser"].click()
     assert window.tools.mode == "eraser"
@@ -64,7 +64,7 @@ def test_undo_button_state(window):
 
 
 def test_color_palette_recent(window):
-    from plume.view.color_picker import ColorPalette
+    from fnote.view.color_picker import ColorPalette
     pal = ColorPalette(window.config, ["#1a1a1a", "#1f5fd1"], "#1a1a1aff")
     got = []
     pal.colorPicked.connect(got.append)
@@ -79,7 +79,7 @@ def test_import_pdf_creates_annotated_note(window, tmp_path):
     d.save(tmp_path / "TD1.pdf")
     window.import_pdf(tmp_path / "TD1.pdf")
     tab = window.current_tab()
-    assert tab.ctl.path.name == "TD1 (annoté).plume" and tab.canvas.renderer.pdf_source is not None
+    assert tab.ctl.path.name == "TD1 (annoté).fnote" and tab.canvas.renderer.pdf_source is not None
     assert (tmp_path / "TD1.pdf").exists()
     img = tab.canvas.renderer.render_page(tab.ctl.doc.pages[0], 0.5)
     assert not img.isNull()

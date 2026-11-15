@@ -1,6 +1,6 @@
-# Design system — Plume (phase 0 : tokens)
+# Design system — FNote (phase 0 : tokens)
 
-Source unique des valeurs : `plume/resources/tokens.json`. Le style Qt est **généré** à partir des tokens par `plume/view/style.py` (un seul QSS centralisé) : aucun code de couleur en dur dans les widgets.
+Source unique des valeurs : `fnote/resources/tokens.json`. Le style Qt est **généré** à partir des tokens par `fnote/view/style.py` (un seul QSS centralisé) : aucun code de couleur en dur dans les widgets.
 
 Adapté pour Qt : pas de CSS ni de Tailwind ; `tokens.css` est remplacé par le QSS généré, et les « primitives » sont des widgets Qt stylés par `objectName`/propriétés.
 
@@ -9,7 +9,7 @@ Adapté pour Qt : pas de CSS ni de Tailwind ; `tokens.css` est remplacé par le 
 - **La feuille d'abord.** L'interface est discrète : une barre d'outils fine en haut, un « bureau » gris autour de pages blanches. Les pages restent blanches en thème sombre (option future).
 - **Pensé pour le stylet.** Cibles ≥ 40 px, boutons d'outil de 44 px, pastilles de couleur de 32 px, pas de menus imbriqués pour les outils courants.
 - **Une seule barre** (correctif #6) : tout outil est à un geste ; ses réglages s'ouvrent dans un popover sous le bouton.
-- **Rien de Samsung** : couleurs, libellés et icônes originaux. Icônes prévues : **Lucide** (licence ISC), copiées en SVG dans `plume/resources/icons/` en phase 2.
+- **Rien de Samsung** : couleurs, libellés et icônes originaux. Icônes prévues : **Lucide** (licence ISC), copiées en SVG dans `fnote/resources/icons/` en phase 2.
 
 ## Couleurs (rôles)
 

@@ -1,6 +1,6 @@
-"""Export compagnon pour Obsidian : NomDeLaNote.pdf écrit à côté du .plume, en arrière-plan.
+"""Export compagnon pour Obsidian : NomDeLaNote.pdf écrit à côté du .fnote, en arrière-plan.
 
-Sécurité : on ne remplace jamais un PDF qui n'a pas été produit par Plume (par ex. le
+Sécurité : on ne remplace jamais un PDF qui n'a pas été produit par FNote (par ex. le
 cours d'origine portant le même nom) — on le signale à la place.
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 from ..model import serialization
-from .exporter import export_to_file, is_plume_pdf
+from .exporter import export_to_file, is_fnote_pdf
 
 
 class _Signals(QObject):
@@ -49,8 +49,8 @@ class CompanionExporter(QObject):
 
     def export(self, ctl, curve) -> bool:
         target = self.target_for(ctl.path)
-        if target.exists() and not is_plume_pdf(target):
-            self.skipped.emit(f"« {target.name} » existe déjà et ne vient pas de Plume : export compagnon ignoré.")
+        if target.exists() and not is_fnote_pdf(target):
+            self.skipped.emit(f"« {target.name} » existe déjà et ne vient pas de FNote : export compagnon ignoré.")
             return False
         # Instantané pris sur le fil principal : le document peut continuer à changer pendant l'export.
         snap = serialization.from_dict(serialization.to_dict(ctl.doc), dict(ctl.doc.assets), ctl.doc.source_pdf)

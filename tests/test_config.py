@@ -1,4 +1,4 @@
-from plume.model.config import Config, config_path
+from fnote.model.config import Config, config_path
 
 
 def test_defaults_when_missing(tmp_path):
@@ -7,7 +7,7 @@ def test_defaults_when_missing(tmp_path):
 
 
 def test_round_trip(tmp_path):
-    path = tmp_path / "plume" / "config.json"
+    path = tmp_path / "fnote" / "config.json"
     cfg = Config(vault_path="/home/x/Vault", finger_draws=True)
     cfg.save(path)
     back = Config.load(path)
@@ -29,4 +29,11 @@ def test_corrupt_file_gives_defaults(tmp_path):
 
 def test_xdg_config_home(monkeypatch, tmp_path):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    assert config_path() == tmp_path / "plume" / "config.json"
+    assert config_path() == tmp_path / "fnote" / "config.json"
+
+
+def test_old_plume_config_is_taken_over(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    Config(vault_path="/v").save(tmp_path / "plume" / "config.json")
+    assert Config.load(config_path()).vault_path == "/v"
+    assert (tmp_path / "plume" / "config.json").exists()  # l'ancien fichier n'est pas touché

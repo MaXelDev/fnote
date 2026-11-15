@@ -1,4 +1,4 @@
-"""Point d'entrée de Plume : configuration Wayland, QApplication, fenêtre principale."""
+"""Point d'entrée de FNote : configuration Wayland, QApplication, fenêtre principale."""
 from __future__ import annotations
 
 import argparse
@@ -10,16 +10,16 @@ def configure_platform(env=os.environ, x11: bool = False) -> None:
     """Wayland natif, ou X11 via XWayland (x11=True) avec repli sur l'autre.
 
     Sous GNOME Wayland, le curseur vu pendant l'écriture est celui de la souris, avec la forme
-    choisie par la dernière fenêtre survolée : Plume ne peut le cacher que si la souris est
-    passée sur lui. Via XWayland, Plume gère lui-même le curseur et il reste caché.
+    choisie par la dernière fenêtre survolée : FNote ne peut le cacher que si la souris est
+    passée sur lui. Via XWayland, FNote gère lui-même le curseur et il reste caché.
     """
     if "QT_QPA_PLATFORM" not in env and env.get("WAYLAND_DISPLAY"):
         env["QT_QPA_PLATFORM"] = "xcb;wayland" if x11 and env.get("DISPLAY") else "wayland;xcb"
 
 
 def parse_args(argv=None):
-    p = argparse.ArgumentParser(prog="plume", description="Prise de notes manuscrites au stylet.")
-    p.add_argument("file", nargs="?", help="note .plume à ouvrir")
+    p = argparse.ArgumentParser(prog="fnote", description="Prise de notes manuscrites au stylet.")
+    p.add_argument("file", nargs="?", help="note .fnote à ouvrir")
     p.add_argument("--debug-tablet", action="store_true", help="ouvre la fenêtre de diagnostic du stylet")
     p.add_argument("--debug-perf", action="store_true", help="affiche fps et temps de rendu sur le canevas")
     return p.parse_args(argv)
@@ -38,8 +38,8 @@ def main(argv=None) -> int:
     QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_CompressTabletEvents, False)
     QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_CompressHighFrequencyEvents, False)
     app = QApplication(sys.argv[:1])
-    app.setApplicationName("Plume")
-    app.setDesktopFileName("plume")  # app_id Wayland
+    app.setApplicationName("FNote")
+    app.setDesktopFileName("fnote")  # app_id Wayland
 
     from .view import style
     style.apply(app)

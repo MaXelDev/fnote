@@ -1,8 +1,8 @@
-"""Garde-fou : Plume est 100 % hors ligne. Échoue si un module réseau est importé."""
+"""Garde-fou : FNote est 100 % hors ligne. Échoue si un module réseau est importé."""
 import ast
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent / "plume"
+ROOT = Path(__file__).resolve().parent.parent / "fnote"
 
 FORBIDDEN = {
     "socket", "ssl", "http", "urllib", "ftplib", "smtplib", "poplib", "imaplib", "telnetlib",

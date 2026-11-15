@@ -1,10 +1,10 @@
 ---
 name: fin-de-phase
-description: Clôture une phase de Plume avant la PR — parité Replica, nettoyage, revue de code, dettes, revue de sécurité, puis bilan pour l'utilisateur (commandes, checklist stylet, points fragiles). À lancer à la fin de chaque phase, avant toute PR.
+description: Clôture une phase de FNote avant la PR — parité Replica, nettoyage, revue de code, dettes, revue de sécurité, puis bilan pour l'utilisateur (commandes, checklist stylet, points fragiles). À lancer à la fin de chaque phase, avant toute PR.
 disable-model-invocation: true
 ---
 
-# Fin de phase Plume
+# Fin de phase FNote
 
 Argument : numéro de la phase (ex. `/fin-de-phase 1`). Branche courante = `phase-N-…`.
 
@@ -13,8 +13,8 @@ Argument : numéro de la phase (ex. `/fin-de-phase 1`). Branche courante = `phas
 3. **Nettoyage** : skill `simplify` sur le diff de la branche (`git diff main...HEAD`).
 4. **Revue** : skill `code-review` (ou `ponytail:ponytail-review`) sur le diff de la branche ; corriger ce qui est confirmé, en petits commits.
 5. **Dettes** : skill `ponytail:ponytail-debt` → liste des `shortcut:` pour la PR.
-6. **Sécurité** : skill `security-review` — vérifier en priorité : aucun import réseau, lecture des ZIP `.plume` et des PDF importés sûre, aucune note/PDF/chemin de vault dans le dépôt (`git ls-files | grep -E '\.(plume|pdf)$'`).
-7. **Vérifs finales** : `.venv/bin/pytest -q` vert ; `QT_QPA_PLATFORM=offscreen timeout 4 .venv/bin/plume` démarre ; `git push`.
+6. **Sécurité** : skill `security-review` — vérifier en priorité : aucun import réseau, lecture des ZIP `.fnote` et des PDF importés sûre, aucune note/PDF/chemin de vault dans le dépôt (`git ls-files | grep -E '\.(fnote|pdf)$'`).
+7. **Vérifs finales** : `.venv/bin/pytest -q` vert ; `QT_QPA_PLATFORM=offscreen timeout 4 .venv/bin/fnote` démarre ; `git push`.
 8. **Bilan à l'utilisateur** (puis S'ARRÊTER et attendre son retour) :
    - commandes exactes pour lancer l'appli ;
    - checklist de test manuel précise (quoi faire, quoi observer) — socle commun dans `docs/tests.md` §2 + points propres à la phase ;

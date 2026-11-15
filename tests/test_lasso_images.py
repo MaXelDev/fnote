@@ -8,14 +8,14 @@ QtWidgets = pytest.importorskip("PySide6.QtWidgets")
 from PySide6.QtCore import QPointF  # noqa: E402
 from PySide6.QtGui import QColor, QImage  # noqa: E402
 
-from plume.controller import images  # noqa: E402
-from plume.controller.tools.lasso import CLIPBOARD, LassoTool, paste  # noqa: E402
-from plume.model.config import Config  # noqa: E402
-from plume.model.document import Document, Page  # noqa: E402
-from plume.model.elements import ImageItem, Stroke  # noqa: E402
-from plume.model.history import AddElements, History  # noqa: E402
-from plume.view.canvas import Canvas  # noqa: E402
-from plume.view.crop_dialog import combine_crop  # noqa: E402
+from fnote.controller import images  # noqa: E402
+from fnote.controller.tools.lasso import CLIPBOARD, LassoTool, paste  # noqa: E402
+from fnote.model.config import Config  # noqa: E402
+from fnote.model.document import Document, Page  # noqa: E402
+from fnote.model.elements import ImageItem, Stroke  # noqa: E402
+from fnote.model.history import AddElements, History  # noqa: E402
+from fnote.view.canvas import Canvas  # noqa: E402
+from fnote.view.crop_dialog import combine_crop  # noqa: E402
 
 app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
@@ -184,7 +184,7 @@ def test_front_back_order(setup):
 
 
 def test_pen_tap_on_image_selects_it():
-    from plume.controller.tools.ink import InkTool
+    from fnote.controller.tools.ink import InkTool
     doc = Document(pages=[Page()])
     c = Canvas(doc, History(doc), Config())
     c.resize(800, 900)
@@ -204,7 +204,7 @@ def test_pen_tap_on_image_selects_it():
 
 
 def test_long_press_opens_menu_without_ink(setup):
-    from plume.controller.tools.ink import InkTool
+    from fnote.controller.tools.ink import InkTool
     c, _, s = setup
     c.set_tool(InkTool(c, {"tool": "fountain", "color": "#000000ff", "width": 2}))
     got = []
@@ -222,7 +222,7 @@ def test_long_press_opens_menu_without_ink(setup):
 
 
 def test_long_press_cancelled_by_movement(setup):
-    from plume.controller.tools.ink import InkTool
+    from fnote.controller.tools.ink import InkTool
     c, _, _ = setup
     c.set_tool(InkTool(c, {"tool": "fountain", "color": "#000000ff", "width": 2}))
     c._start(c.tool, view(c, 300, 400), .5, 0)

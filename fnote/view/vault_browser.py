@@ -1,8 +1,8 @@
-"""Panneau du vault : arborescence des dossiers, notes .plume et PDF.
+"""Panneau du vault : arborescence des dossiers, notes .fnote et PDF.
 
 Les opérations sur fichiers (renommer, déplacer, supprimer) sont faites ici et
 signalées à la fenêtre pour mettre à jour les onglets ouverts. Le PDF compagnon
-d'une note (produit par Plume) suit la note.
+d'une note (produit par FNote) suit la note.
 """
 from __future__ import annotations
 
@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QFileIconProvider, QFileSystem
 
 from . import icons
 
-NOTE_EXT, PDF_EXT = ".plume", ".pdf"
+NOTE_EXT, PDF_EXT = ".fnote", ".pdf"
+NOTE_EXTS = (NOTE_EXT, ".plume")  # .plume : notes créées avant le changement de nom
 
 
 class _Icons(QFileIconProvider):
@@ -23,7 +24,7 @@ class _Icons(QFileIconProvider):
         if isinstance(info, QFileInfo):
             if info.isDir():
                 return icons.icon("folder")
-            if info.suffix().lower() == "plume":
+            if "." + info.suffix().lower() in NOTE_EXTS:
                 return icons.icon("note")
             if info.suffix().lower() == "pdf":
                 return icons.icon("pdf")
@@ -31,10 +32,10 @@ class _Icons(QFileIconProvider):
 
 
 def companion_of(note: Path) -> Path | None:
-    """PDF compagnon d'une note, s'il existe et vient de Plume."""
-    from ..pdf.exporter import is_plume_pdf
+    """PDF compagnon d'une note, s'il existe et vient de FNote."""
+    from ..pdf.exporter import is_fnote_pdf
     pdf = note.with_suffix(PDF_EXT)
-    return pdf if note.suffix == NOTE_EXT and pdf.exists() and is_plume_pdf(pdf) else None
+    return pdf if note.suffix.lower() in NOTE_EXTS and pdf.exists() and is_fnote_pdf(pdf) else None
 
 
 def safe_name(name: str) -> str:
@@ -82,7 +83,7 @@ class VaultBrowser(QWidget):
         self.model = QFileSystemModel(self)
         self.model.setIconProvider(_Icons())
         self.model.setFilter(QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot)
-        self.model.setNameFilters(["*" + NOTE_EXT, "*" + PDF_EXT])
+        self.model.setNameFilters(["*" + e for e in NOTE_EXTS] + ["*" + PDF_EXT])
         self.model.setNameFilterDisables(False)
         self.model.setReadOnly(True)
 
@@ -132,7 +133,7 @@ class VaultBrowser(QWidget):
 
     def _activate(self, index):
         p = self._path(index)
-        if p.suffix.lower() == NOTE_EXT:
+        if p.suffix.lower() in NOTE_EXTS:
             self.openNote.emit(p)
         elif p.suffix.lower() == PDF_EXT:
             self.importPdf.emit(p)
@@ -144,7 +145,7 @@ class VaultBrowser(QWidget):
             return
         folder = p if p.is_dir() else p.parent
         m = QMenu(self)
-        if p.suffix.lower() == NOTE_EXT:
+        if p.suffix.lower() in NOTE_EXTS:
             m.addAction("Ouvrir", lambda: self.openNote.emit(p))
         if p.suffix.lower() == PDF_EXT:
             m.addAction("Annoter ce PDF", lambda: self.importPdf.emit(p))

@@ -1,7 +1,7 @@
-# Architecture — Plume
+# Architecture — FNote
 
 Lit : `recon.md`, `features.csv`, `fixes.md`. Adapté d'un modèle prévu pour le web : pas de SQL, pas d'API HTTP, pas d'auth, pas d'hébergement.
-**Ce qui remplace quoi** : le schéma SQL → le **schéma JSON versionné du format `.plume`** ; l'API → les **interfaces entre modèle, vues et contrôleurs** ; les jobs serveur → des **tâches Qt en arrière-plan** (`QThreadPool`).
+**Ce qui remplace quoi** : le schéma SQL → le **schéma JSON versionné du format `.fnote`** ; l'API → les **interfaces entre modèle, vues et contrôleurs** ; les jobs serveur → des **tâches Qt en arrière-plan** (`QThreadPool`).
 
 ## 1. Stack
 
@@ -11,8 +11,8 @@ Lit : `recon.md`, `features.csv`, `fixes.md`. Adapté d'un modèle prévu pour l
 | UI et entrée stylet | PySide6 (Qt 6), `QWidget` + `QPainter` | `QTabletEvent` (pression, inclinaison, proximité) via tablet-v2 sous Wayland ; rendu raster maîtrisé |
 | PDF | PyMuPDF (`fitz`) | rendu des pages en fond + export vectoriel (`Page.draw_*`, `show_pdf_page`) en gardant le texte |
 | calcul | NumPy | lissage, reconnaissance de formes, tests d'intersection |
-| stockage | fichiers `.plume` (ZIP) dans le vault | pas de base cachée (contrainte §2) |
-| config | `~/.config/plume/config.json` (`QStandardPaths`/XDG) | lisible, versionnée par un champ `config_version` |
+| stockage | fichiers `.fnote` (ZIP) dans le vault | pas de base cachée (contrainte §2) |
+| config | `~/.config/fnote/config.json` (`QStandardPaths`/XDG) | lisible, versionnée par un champ `config_version` |
 | tests | pytest (+ `pytest-qt` seulement si nécessaire) | tout ce qui ne dépend pas du matériel |
 | corbeille | `QFile.moveToTrash` | corbeille système sans dépendance (`send2trash` inutile) |
 
@@ -25,12 +25,12 @@ Pas de `QGraphicsView` : avec des milliers de traits sur 30 pages, une scène d'
 - Zoom = pixels écran par point, multiplié par `devicePixelRatio` pour les caches (correctif #3 : positions toujours en `QPointF`, jamais arrondies).
 - Mise en page continue : les pages s'empilent verticalement avec un espacement fixe ; `Layout` convertit écran ↔ (n° de page, coordonnées de page).
 
-## 3. Schéma du format `.plume` (remplace le SQL)
+## 3. Schéma du format `.fnote` (remplace le SQL)
 
-Un fichier `.plume` est une archive ZIP :
+Un fichier `.fnote` est une archive ZIP :
 
 ```
-NomDeLaNote.plume
+NomDeLaNote.fnote
 ├── document.json        # obligatoire
 ├── assets/<sha1>.png    # images insérées (nom = hash du contenu, dédupliqué)
 └── source.pdf           # PDF importé, optionnel
@@ -41,7 +41,7 @@ NomDeLaNote.plume
 ```json
 {
   "format_version": 1,
-  "app": "plume",
+  "app": "fnote",
   "metadata": {"title": "Analyse TD3", "created": "2026-11-14T18:00:00Z", "modified": "2026-11-14T18:30:00Z"},
   "source_pdf": "source.pdf",
   "pages": [
@@ -72,21 +72,21 @@ Règles (équivalent des contraintes SQL) :
 
 **Sécurité de lecture** (archive non fiable) : on ne lit que les noms attendus (`document.json`, `assets/<hex>.<ext>`, `source.pdf`), jamais d'extraction sur disque (pas de *zip slip*), taille décompressée plafonnée (anti *zip bomb*), JSON validé champ par champ avant construction du modèle.
 
-**Sauvegarde atomique** : écriture de l'archive complète dans `.<nom>.plume.tmp` du même dossier → `fsync` → `os.replace`. Un crash laisse soit l'ancien fichier, soit le nouveau, jamais un fichier tronqué.
+**Sauvegarde atomique** : écriture de l'archive complète dans `.<nom>.fnote.tmp` du même dossier → `fsync` → `os.replace`. Un crash laisse soit l'ancien fichier, soit le nouveau, jamais un fichier tronqué.
 
 ## 4. Interfaces modèle ↔ vues ↔ contrôleurs (remplace l'API)
 
-### Modèle (`plume/model/`, sans dépendance Qt sauf exception notée)
+### Modèle (`fnote/model/`, sans dépendance Qt sauf exception notée)
 
 | module | interface publique | rôle |
 |---|---|---|
 | `elements.py` | `Stroke`, `Shape`, `ImageItem` (dataclasses) ; `bounds() -> (x0, y0, x1, y1)` ; `translated(dx, dy)` | données pures |
 | `document.py` | `Document(pages, metadata, source_pdf)` ; `Page(width, height, background, highlights, images, ink, shapes)` ; `Page.layer_for(element)` ; `Page.add/remove(element)` ; `Document.add_page(index, page)` | arbre de données |
 | `history.py` | `Command` (`do(doc)`, `undo(doc)`, `pages_touched`) ; `History.push(cmd)`, `undo()`, `redo()`, `can_undo/can_redo` ; commandes `AddElements`, `RemoveElements`, `ReplaceElements`, `AddPage`, `MovePage`… | undo illimité ; chaque commande renvoie les pages modifiées pour invalider leurs caches |
-| `serialization.py` | `load(path) -> Document` ; `save(doc, path)` (atomique) ; `to_dict` / `from_dict` | format `.plume` |
+| `serialization.py` | `load(path) -> Document` ; `save(doc, path)` (atomique) ; `to_dict` / `from_dict` | format `.fnote` |
 | `config.py` | `Config.load()`, `Config.save()`, champs typés avec valeurs par défaut | paramètres |
 
-### Moteur (`plume/engine/`, NumPy, sans Qt)
+### Moteur (`fnote/engine/`, NumPy, sans Qt)
 
 | module | interface |
 |---|---|
@@ -96,7 +96,7 @@ Règles (équivalent des contraintes SQL) :
 | `shape_recognition.py` | `recognize(points) -> Shape | None` |
 | `ruler.py` (phase 4) | `snap(point, ruler) -> point` |
 
-### Vues (`plume/view/`, Qt)
+### Vues (`fnote/view/`, Qt)
 
 | module | interface | règles |
 |---|---|---|
@@ -106,7 +106,7 @@ Règles (équivalent des contraintes SQL) :
 | `color_picker.py`, `ruler.py`, `vault_browser.py` | widgets | phases 2, 4, 6 |
 | `debug_tablet.py` | `TabletDebugWindow` | phase 0 |
 
-### Contrôleurs (`plume/controller/`)
+### Contrôleurs (`fnote/controller/`)
 
 | module | interface | rôle |
 |---|---|---|
@@ -131,9 +131,9 @@ Flux d'un trait : `QTabletEvent` → `InputRouter` → `PenTool.move()` (lissage
 - **Tablette sous Wayland** : les événements de proximité arrivent à `QApplication`, pas au widget → filtre global. Pression et bouton latéral à vérifier avec `--debug-tablet` avant la phase 1.
 - **Compression d'événements** : `QGuiApplication.setAttribute(Qt.AA_CompressTabletEvents, False)` avant la création de l'application.
 - **HiDPI / mise à l'échelle fractionnaire** : caches à `zoom × devicePixelRatio`, positions flottantes.
-- **Atomicité** : `os.replace` dans le même dossier (même système de fichiers) ; jamais d'écriture directe sur le `.plume`.
+- **Atomicité** : `os.replace` dans le même dossier (même système de fichiers) ; jamais d'écriture directe sur le `.fnote`.
 - **Fichiers non fiables** : ZIP et PDF importés lus de façon défensive (voir §3).
-- **Aucun réseau** : test `test_no_network_imports.py` qui analyse l'AST de tout `plume/`.
+- **Aucun réseau** : test `test_no_network_imports.py` qui analyse l'AST de tout `fnote/`.
 - **Grosse note** : 30 pages × centaines de traits → seul le visible est peint, caches libérés pour les pages lointaines (LRU).
 
 ## 7. Ordre de construction

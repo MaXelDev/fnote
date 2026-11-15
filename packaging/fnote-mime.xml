@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
-  <mime-type type="application/x-plume">
-    <comment>Note Plume</comment>
+  <mime-type type="application/x-fnote">
+    <comment>Note FNote</comment>
     <sub-class-of type="application/zip"/>
+    <glob pattern="*.fnote"/>
     <glob pattern="*.plume"/>
-    <icon name="plume"/>
+    <icon name="fnote"/>
   </mime-type>
 </mime-info>
