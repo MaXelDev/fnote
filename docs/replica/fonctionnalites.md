@@ -127,3 +127,14 @@ Priorités : **must** = indispensable, **should** = attendu, **could** = bonus, 
 | Assistant IA (résumé / correction / mise en forme) | hors périmètre | skip | yes | skip | service distant ; non demandé |
 | Notes partagées / collaboration | hors périmètre | skip | yes | skip | réseau |
 | Compatibilité Windows / macOS | hors périmètre | skip | yes | skip | 7.12 |
+| Toucher un objet ou une image pour le sélectionner (stylet ou doigt) | lasso | must | yes | yes | v1.1 ; retour à l'outil d'avant en touchant ailleurs |
+| Lasso rectangle (en plus du lasso libre) | lasso | should | yes | yes | v1.1 ; réglage au second appui sur l'outil |
+| Poignées de côté pour étirer, coins proportionnels | lasso | should | yes | yes | v1.1 |
+| Barre d'actions de la sélection au-dessus, cibles 48 px | lasso | must | yes | yes | v1.1 ; corrige Supprimer inopérant au stylet |
+| Premier plan / arrière-plan | lasso | could | yes | yes | v1.1 |
+| Enregistrer la sélection en image | lasso | could | yes | yes | v1.1 |
+| Déplacer une sélection au doigt | lasso | should | yes | yes | v1.1 |
+| Formes : polygones (losange, pentagone, hexagone…) | formes | should | yes | yes | v1.1 ; jusqu'à 8 côtés |
+| Formes reconnues même commencées au milieu d'un côté | formes | must | yes | yes | v1.1 ; ≥ 90 % sur tracés tremblés |
+| Modèle PDF pour les nouvelles notes (pages répétées) | pages | should | yes | yes | v1.1 ; par défaut dans Paramètres ou au cas par cas |
+| Interface utilisable au doigt (menus, listes, onglets ≥ 48 px) | interface | must | yes | yes | v1.1 ; menu ⋮ sans sous-menus |

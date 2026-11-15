@@ -50,10 +50,10 @@ class Welcome(QWidget):
         box.addWidget(self.vault_btn, 0, Qt.AlignmentFlag.AlignHCenter)
 
         row = QHBoxLayout()
-        for key, label, icon in (("new", "Nouvelle note", "plus"), ("open", "Ouvrir", "note"),
-                                 ("import", "Annoter un PDF", "pdf")):
+        for key, label, icon in (("new", "Nouvelle note", "plus"), ("template", "Sur un modèle PDF", "pdf"),
+                                 ("open", "Ouvrir", "note"), ("import", "Annoter un PDF", "pdf")):
             b = QPushButton(icons.icon(icon), "  " + label)
-            b.setMinimumHeight(44)
+            b.setMinimumHeight(52)
             b.clicked.connect(lambda _=False, k=key: self.action.emit(k))
             row.addWidget(b)
             if key == "new":

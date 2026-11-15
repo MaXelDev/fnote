@@ -18,13 +18,17 @@ class Command:
 
 
 class AddElements(Command):
-    def __init__(self, page_id: str, elements: list[Element]):
-        self.page_id, self.elements = page_id, list(elements)
+    def __init__(self, page_id: str, elements: list[Element], at_back: bool = False):
+        self.page_id, self.elements, self.at_back = page_id, list(elements), at_back
 
     def do(self, doc):
         page = doc.page(self.page_id)
-        for e in self.elements:
-            page.add(e)
+        if self.at_back:  # tout en dessous de son calque (« arrière-plan »), ordre relatif gardé
+            for e in reversed(self.elements):
+                page.add(e, 0)
+        else:
+            for e in self.elements:
+                page.add(e)
         return {self.page_id}
 
     def undo(self, doc):

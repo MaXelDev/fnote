@@ -70,7 +70,7 @@ def shape_path(shape: Shape) -> QPainterPath:
     path.moveTo(*g[0])
     for p in g[1:]:
         path.lineTo(*p)
-    if shape.kind in ("rect", "triangle"):
+    if shape.kind in ("rect", "triangle", "polygon"):
         path.closeSubpath()
     if shape.kind == "arrow" and len(g) >= 2:
         (x0, y0), (x1, y1) = g[0], g[-1]

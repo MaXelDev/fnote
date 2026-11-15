@@ -63,6 +63,18 @@ class SettingsDialog(QDialog):
         form.addRow("Sensibilité à la pression\n(gauche : appuyer fort, droite : très sensible)", sens_row)
         self._curve_changed(self.sens.value())
 
+        self.template = QLineEdit(config.note_template)
+        self.template.setPlaceholderText("Aucun : page au fond ci-dessous")
+        pick = QPushButton("Choisir…")
+        pick.clicked.connect(self._pick_template)
+        clear = QPushButton("Aucun")
+        clear.clicked.connect(self.template.clear)
+        trow = QHBoxLayout()
+        trow.addWidget(self.template, 1)
+        trow.addWidget(pick)
+        trow.addWidget(clear)
+        form.addRow("Modèle PDF des nouvelles notes\n(feuille lignée, Cornell…)", trow)
+
         self.bg = QComboBox()
         for key, label in BACKGROUNDS:
             self.bg.addItem(label, key)
@@ -104,6 +116,12 @@ class SettingsDialog(QDialog):
         if folder:
             self.vault.setText(folder)
 
+    def _pick_template(self):
+        pdf, _ = QFileDialog.getOpenFileName(self, "Modèle PDF des nouvelles notes", self.template.text() or self.vault.text(),
+                                             "PDF (*.pdf)")
+        if pdf:
+            self.template.setText(pdf)
+
     def _curve_changed(self, value: int):
         self.preview.curve = PressureCurve.from_sensitivity(value / 100)
         self.preview.update()
@@ -114,6 +132,7 @@ class SettingsDialog(QDialog):
         c.pressure_sensitivity = self.sens.value() / 100
         curve = PressureCurve.from_sensitivity(c.pressure_sensitivity)
         c.pressure_curve = [[float(x), float(y)] for x, y in zip(curve.x, curve.y)]
+        c.note_template = self.template.text().strip()
         c.default_background = self.bg.currentData()
         c.side_button_action = self.side.currentData()
         for key, cb in self.checks.items():

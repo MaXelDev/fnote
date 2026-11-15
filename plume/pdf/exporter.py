@@ -91,7 +91,7 @@ def _shape_points(s: Shape):
         u, v = (g[1] - g[0]) / 2, (g[3] - g[0]) / 2
         a = np.linspace(0, 2 * math.pi, 73)
         return [c + np.cos(t) * u + np.sin(t) * v for t in a], []
-    if s.kind in ("rect", "triangle"):
+    if s.kind in ("rect", "triangle", "polygon"):
         return list(g) + [g[0]], []
     extra = []
     if s.kind == "arrow":

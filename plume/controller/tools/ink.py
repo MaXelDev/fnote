@@ -22,10 +22,12 @@ from ...view.render import qcolor, shape_path
 from .base import Tool
 
 HOLD_MS = 500
-HOLD_TOLERANCE_PX = 3.0
+HOLD_TOLERANCE_PX = 6.0  # tremblement toléré pendant le maintien (le S Pen bouge de quelques px)
 
 
 class InkTool(Tool):
+    tap_selects_images = True  # un simple appui sur une image la sélectionne (comme l'original)
+
     def __init__(self, canvas, spec: dict):
         super().__init__(canvas)
         self.spec = dict(spec)  # {"tool": ..., "color": "#rrggbbaa", "width": pt}

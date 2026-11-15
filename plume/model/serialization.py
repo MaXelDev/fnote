@@ -179,6 +179,8 @@ def from_dict(data: dict, assets: dict[str, bytes] | None = None, source_pdf: by
             raise PlumeFormatError(f"fond de page inconnu : {bg!r}")
         if bg["kind"] == "pdf" and (source_pdf is None or not isinstance(bg.get("pdf_page"), int)):
             raise PlumeFormatError("page PDF sans PDF source")
+        if not isinstance(bg.get("template", False), bool):
+            raise PlumeFormatError("fond de page : « template » doit être vrai ou faux")
         pages.append(Page(
             width=_num(p.get("width"), "largeur"), height=_num(p.get("height"), "hauteur"),
             background=dict(bg), id=_id(p),

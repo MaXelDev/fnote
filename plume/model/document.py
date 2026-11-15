@@ -55,6 +55,15 @@ class Page:
         return index
 
 
+def next_background(page: Page, default_kind: str) -> dict:
+    """Fond d'une page ajoutée après `page` : on répète un modèle PDF ou un fond simple,
+    mais une page d'un PDF importé (cours, sujet) laisse place au fond par défaut."""
+    bg = page.background
+    if bg.get("kind") == "pdf" and not bg.get("template"):
+        return {"kind": default_kind}
+    return dict(bg)
+
+
 @dataclass
 class Document:
     pages: list[Page] = field(default_factory=lambda: [Page()])

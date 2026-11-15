@@ -13,7 +13,7 @@ from plume.controller.tools.lasso import CLIPBOARD, LassoTool, paste  # noqa: E4
 from plume.model.config import Config  # noqa: E402
 from plume.model.document import Document, Page  # noqa: E402
 from plume.model.elements import ImageItem, Stroke  # noqa: E402
-from plume.model.history import History  # noqa: E402
+from plume.model.history import AddElements, History  # noqa: E402
 from plume.view.canvas import Canvas  # noqa: E402
 from plume.view.crop_dialog import combine_crop  # noqa: E402
 
@@ -124,3 +124,80 @@ def test_huge_image_downscaled():
 def test_combine_crop():
     assert combine_crop((0, 0, 1, 1), (0.25, 0.5, 0.75, 1)) == (0.25, 0.5, 0.75, 1)
     assert combine_crop((0.5, 0, 1, 0.5), (0, 0, 0.5, 1)) == (0.5, 0, 0.75, 0.5)
+
+
+def _pen(c, kind, pos, button):
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QPointingDevice, QTabletEvent
+    dev = QPointingDevice("stylet", 1, QPointingDevice.DeviceType.Stylus, QPointingDevice.PointerType.Pen,
+                          QPointingDevice.Capability.Position | QPointingDevice.Capability.Pressure, 1, 3)
+    ev = QTabletEvent(getattr(QEvent.Type, kind), dev, QPointF(pos), QPointF(pos), 0.5, 0, 0, 0, 0, 0,
+                      Qt.KeyboardModifier.NoModifier, button, button)
+    return c.viewportEvent(ev), ev
+
+
+def test_pen_on_selection_bar_does_not_clear_selection(setup):
+    from PySide6.QtCore import Qt
+    c, tool, s = setup
+    lasso_all(c, tool)
+    bar = tool.bar
+    assert bar.isVisible()
+    b = bar.buttons["delete"]
+    centre = QPointF(b.mapTo(c.viewport(), b.rect().center()))
+    handled, ev = _pen(c, "TabletPress", centre, Qt.MouseButton.LeftButton)
+    assert not handled and not ev.isAccepted()  # laissé au bouton (clic synthétisé par Qt)
+    assert tool.selection and bar.isVisible()
+    b.click()
+    assert c.doc.pages[0].ink == []
+
+
+def test_tap_selects_object_and_rect_mode(setup):
+    c, tool, s = setup
+    p = view(c, 150, 100)
+    tool.press(p, .5, 0)
+    tool.release(p, .5, 1)
+    assert [e.id for e in tool.selection] == [s.id]
+    c.config.lasso_mode = "rect"
+    tool.clear()
+    drag(tool, view(c, 90, 90), view(c, 210, 110))
+    assert [e.id for e in tool.selection] == [s.id]
+
+
+def test_side_handle_stretches_one_axis(setup):
+    c, tool, s = setup
+    lasso_all(c, tool)
+    right = tool._side_handles()[1]
+    drag(tool, right, right + QPointF(100, 0))
+    e = c.doc.pages[0].ink[0]
+    assert e.points[-1][0] - e.points[0][0] > 150 and abs(e.points[0][1] - 100) < 1  # plus large, même hauteur
+
+
+def test_front_back_order(setup):
+    c, tool, s = setup
+    s2 = Stroke(points=[(100, 120, .5, 0), (200, 120, .5, 1)], width=2)
+    c.apply(AddElements(c.doc.pages[0].id, [s2]))
+    tool.select([s], 0)
+    tool.action("front")
+    assert c.doc.pages[0].ink[-1].id == s.id
+    tool.action("back")
+    assert c.doc.pages[0].ink[0].id == s.id
+
+
+def test_pen_tap_on_image_selects_it():
+    from plume.controller.tools.ink import InkTool
+    doc = Document(pages=[Page()])
+    c = Canvas(doc, History(doc), Config())
+    c.resize(800, 900)
+    c.show()
+    app.processEvents()
+    img = QImage(200, 100, QImage.Format.Format_RGB32)
+    img.fill(QColor("#3366ff"))
+    item = images.add_image(c, img)
+    c.set_tool(InkTool(c, {"tool": "fountain", "color": "#000000ff", "width": 2.0}))
+    got = []
+    c.imageTapped.connect(lambda i, it: got.append(it.id))
+    x, y, w, h = item.rect
+    p = c.page_to_view(0, x + w / 2, y + h / 2)
+    c._start(c.tool, p, .5, 0)
+    c._finish(p, .5, 1)
+    assert got == [item.id] and c.doc.pages[0].ink == []  # pas de point d'encre

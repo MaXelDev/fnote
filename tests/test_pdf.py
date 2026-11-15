@@ -128,3 +128,20 @@ def test_companion_export_and_protection(tmp_path):
     exp.skipped.connect(skipped.append)
     assert not exp.export(DocumentController(Document(), tmp_path / "Cours.plume", Config()), PressureCurve())
     assert skipped and (tmp_path / "Cours.pdf").read_bytes() == before
+
+
+def test_template_pages_repeat_but_imported_pdf_pages_do_not(tmp_path):
+    import pymupdf
+    from plume.model import serialization
+    from plume.model.document import next_background
+    from plume.pdf.importer import import_pdf, template_document
+    d = pymupdf.open()
+    d.new_page()
+    d.save(tmp_path / "Feuille lignée.pdf")
+    doc = template_document(tmp_path / "Feuille lignée.pdf", "Maths")
+    assert doc.title == "Maths" and doc.pages[0].background == {"kind": "pdf", "pdf_page": 0, "template": True}
+    assert next_background(doc.pages[0], "blank") == doc.pages[0].background  # la page suivante répète le modèle
+    serialization.save(doc, tmp_path / "Maths.plume")
+    assert serialization.load(tmp_path / "Maths.plume").pages[0].background["template"] is True
+    cours = import_pdf(tmp_path / "Feuille lignée.pdf")
+    assert next_background(cours.pages[0], "lined") == {"kind": "lined"}  # un cours importé : fond par défaut

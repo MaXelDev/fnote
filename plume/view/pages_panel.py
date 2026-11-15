@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout, QListWidget, QListWidgetItem,
                                QPushButton, QVBoxLayout, QWidget)
 
-from ..model.document import Page
+from ..model.document import Page, next_background
 from ..model.history import AddPage, MovePage, RemovePage, SetBackground
 
 THUMB_W = 120
@@ -149,8 +149,8 @@ class PagesPanel(QWidget):
             return
         i = self._selected_index()
         ref = self.canvas.doc.pages[i]
-        bg = ref.background if ref.background.get("kind") != "pdf" else {"kind": self.canvas.config.default_background}
-        self.canvas.apply(AddPage(i + 1, Page(width=ref.width, height=ref.height, background=dict(bg))))
+        bg = next_background(ref, self.canvas.config.default_background)
+        self.canvas.apply(AddPage(i + 1, Page(width=ref.width, height=ref.height, background=bg)))
         self.canvas.scroll_to_page(i + 1)
 
     def delete_page(self):

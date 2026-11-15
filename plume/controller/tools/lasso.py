@@ -17,11 +17,14 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QToolButton
 from ...engine import transform as tf
 from ...model import colors
 from ...model.elements import ImageItem, Shape, Stroke
-from ...model.history import AddElements, RemoveElements, ReplaceElements
+from ...model.history import AddElements, Group, RemoveElements, ReplaceElements
 from .base import Tool
 
-HANDLE = 7.0          # demi-taille des poignées (px)
-ROTATE_GAP = 30.0     # distance de la poignée de rotation au-dessus du cadre (px)
+HANDLE = 9.0          # demi-taille des poignées dessinées (px)
+HANDLE_HIT = 24.0     # rayon de prise des poignées : assez large pour un doigt
+ROTATE_GAP = 36.0     # distance de la poignée de rotation au-dessus du cadre (px)
+SELECTION_PAD = 16.0  # marge du cadre autour des objets (px)
+TAP_PX = 6.0          # un « lasso » plus petit que ça est un appui : on sélectionne l'objet touché
 SNAP_DEG, SNAP_TOL = 15.0, 3.0
 ACCENT = QColor("#26686c")
 
@@ -30,30 +33,29 @@ MIME_MARK = "application/x-plume-selection"
 
 
 class SelectionBar(QFrame):
-    """Barre flottante sous la sélection."""
+    """Barre d'actions flottante au-dessus de la sélection (cibles larges pour le doigt)."""
 
     def __init__(self, tool: "LassoTool"):
         super().__init__(tool.canvas.viewport())
         self.tool = tool
-        self.setObjectName("popover")
+        self.setObjectName("selectionBar")
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(6, 4, 6, 4)
-        lay.setSpacing(2)
+        lay.setContentsMargins(6, 6, 6, 6)
+        lay.setSpacing(4)
         self.buttons = {}
         for key, label, tip in (("color", "Couleur", "Changer la couleur"), ("thinner", "−", "Plus fin"),
-                                ("thicker", "+", "Plus épais"), ("ratio", "Proportions", "Conserver les proportions"),
-                                ("crop", "Recadrer", "Recadrer l'image"), ("duplicate", "Dupliquer", "Dupliquer"),
+                                ("thicker", "+", "Plus épais"), ("crop", "Recadrer", "Recadrer l'image"),
                                 ("copy", "Copier", "Copier (Ctrl+C)"), ("cut", "Couper", "Couper (Ctrl+X)"),
-                                ("delete", "Supprimer", "Supprimer (Suppr)")):
+                                ("duplicate", "Dupliquer", "Dupliquer (Ctrl+D)"),
+                                ("delete", "Supprimer", "Supprimer (Suppr)"), ("more", "⋯", "Plus d'actions")):
             b = QToolButton()
             b.setText(label)
             b.setToolTip(tip)
-            b.setMinimumHeight(36)
+            b.setAccessibleName(tip)
+            b.setMinimumSize(48, 48)
             b.clicked.connect(lambda _=False, k=key: self.tool.action(k))
             lay.addWidget(b)
             self.buttons[key] = b
-        self.buttons["ratio"].setCheckable(True)
-        self.buttons["ratio"].setChecked(True)
         self.hide()
 
     def refresh(self):
@@ -63,6 +65,26 @@ class SelectionBar(QFrame):
             self.buttons[k].setVisible(has_ink)
         self.buttons["crop"].setVisible(len(sel) == 1 and isinstance(sel[0], ImageItem))
         self.adjustSize()
+
+
+def image_at(page, x: float, y: float):
+    """Image la plus haute sous le point (en tenant compte de sa rotation), ou None."""
+    for item in reversed(page.images):
+        ix, iy, w, h = item.rect
+        cx, cy = ix + w / 2, iy + h / 2
+        a = math.radians(-item.rotation)  # point ramené dans le repère de l'image
+        lx = cx + (x - cx) * math.cos(a) - (y - cy) * math.sin(a)
+        ly = cy + (x - cx) * math.sin(a) + (y - cy) * math.cos(a)
+        if ix <= lx <= ix + w and iy <= ly <= iy + h:
+            return item
+    return None
+
+
+def element_at(page, x: float, y: float, tol: float):
+    """Objet le plus haut sous le point (traits et formes d'abord, puis images), ou None."""
+    from .eraser import hits
+    found = hits(page, (x, y), (x, y), tol, False)
+    return found[-1] if found else image_at(page, x, y)
 
 
 class LassoTool(Tool):
@@ -79,6 +101,7 @@ class LassoTool(Tool):
         self.m = np.eye(3)                   # transformation en cours (aperçu)
         self._drag: dict | None = None
         self._sprite: QImage | None = None
+        self.return_mode: str | None = None  # outil à reprendre quand la sélection (par appui) se termine
         self.bar = SelectionBar(self)
 
     @property
@@ -98,6 +121,10 @@ class LassoTool(Tool):
         t = self._view_transform()
         return [t.map(QPointF(x, y)) for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))]
 
+    def _side_handles(self) -> list[QPointF]:
+        c = self._corners_view()
+        return [(c[i] + c[(i + 1) % 4]) / 2 for i in range(4)]  # haut, droite, bas, gauche
+
     def _rotate_handle(self) -> QPointF:
         c = self._corners_view()
         top_mid = (c[0] + c[1]) / 2
@@ -109,14 +136,16 @@ class LassoTool(Tool):
     def _hit(self, pos: QPointF) -> str | None:
         if not self.selection:
             return None
-        if _dist(pos, self._rotate_handle()) <= HANDLE * 1.8:
-            return "rotate"
-        for i, c in enumerate(self._corners_view()):
-            if _dist(pos, c) <= HANDLE * 1.8:
-                return f"corner{i}"
-        if QPolygonF(self._corners_view()).containsPoint(pos, Qt.FillRule.OddEvenFill):
-            return "move"
-        return None
+        # La poignée la plus proche gagne : avec de grandes zones de prise, elles se chevauchent.
+        handles = [("rotate", self._rotate_handle())]
+        handles += [(f"corner{i}", c) for i, c in enumerate(self._corners_view())]
+        handles += [(f"side{i}", c) for i, c in enumerate(self._side_handles())]
+        name, d = min(((n, _dist(pos, q)) for n, q in handles), key=lambda t: t[1])
+        inside = QPolygonF(self._corners_view()).containsPoint(pos, Qt.FillRule.OddEvenFill)
+        # Dedans, seule une prise précise vise une poignée ; dehors, la zone large (doigt) suffit.
+        if d <= (HANDLE + 4 if inside else HANDLE_HIT):
+            return name
+        return "move" if inside else None
 
     # ----- geste -----
     def press(self, pos, pressure, t):
@@ -126,13 +155,19 @@ class LassoTool(Tool):
             self._drag = {"kind": hit, "start": np.array([pt.x(), pt.y()])}
             self.bar.hide()
             return
+        if self.return_mode is not None and self.selection:
+            self._finish_tap_selection()
+            return
         self.clear()
         self.page_index, _ = self.canvas.view_to_page(pos)
         self.path = [QPointF(pos)]
 
     def move(self, pos, pressure, t):
         if self.path:
-            self.path.append(QPointF(pos))
+            if self.rect_mode:
+                self.path = [self.path[0], QPointF(pos)]
+            else:
+                self.path.append(QPointF(pos))
             self.canvas.viewport().update()
             return
         if self._drag is None:
@@ -157,23 +192,41 @@ class LassoTool(Tool):
                 a = snapped
             self.angle = a
             return tf.rotate_about(cx, cy, a)
+        if kind.startswith("side"):  # poignée de côté : étire dans un seul sens
+            i = int(kind[-1])
+            if i in (0, 2):
+                ay = y1 if i == 0 else y0
+                sy = (cur[1] - ay) / ((start[1] - ay) or 1e-9)
+                return tf.scale_about(cx, ay, 1.0, math.copysign(max(abs(sy), 0.05), sy))
+            ax = x0 if i == 1 else x1
+            sx = (cur[0] - ax) / ((start[0] - ax) or 1e-9)
+            return tf.scale_about(ax, cy, math.copysign(max(abs(sx), 0.05), sx), 1.0)
         corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
         i = int(kind[-1])
-        ax, ay = corners[(i + 2) % 4]  # coin opposé fixe
+        ax, ay = corners[(i + 2) % 4]  # coin opposé fixe ; les coins gardent les proportions
         sx = (cur[0] - ax) / ((start[0] - ax) or 1e-9)
         sy = (cur[1] - ay) / ((start[1] - ay) or 1e-9)
-        if self.bar.buttons["ratio"].isChecked():
-            s = max(abs(sx), abs(sy))
-            sx, sy = math.copysign(s, sx), math.copysign(s, sy)
+        s = max(abs(sx), abs(sy))
+        sx, sy = math.copysign(s, sx), math.copysign(s, sy)
         sx = math.copysign(max(abs(sx), 0.05), sx)
         sy = math.copysign(max(abs(sy), 0.05), sy)
         return tf.scale_about(ax, ay, sx, sy)
 
     def release(self, pos, pressure, t):
         if self.path:
-            poly = [self.canvas.view_to_page(p, self.page_index)[1] for p in self.path]
-            self.path = []
+            path, self.path = self.path, []
             page = self.canvas.doc.pages[self.page_index]
+            box = QPolygonF(path).boundingRect()
+            if box.width() < TAP_PX and box.height() < TAP_PX:  # simple appui : l'objet touché
+                _, pt = self.canvas.view_to_page(path[0], self.page_index)
+                hit = element_at(page, pt.x(), pt.y(), 6 / self.canvas.zoom)
+                self.select([hit] if hit is not None else [], self.page_index)
+                self.canvas.viewport().update()
+                return
+            if self.rect_mode:
+                a, b = path[0], path[-1]
+                path = [a, QPointF(b.x(), a.y()), b, QPointF(a.x(), b.y())]
+            poly = [self.canvas.view_to_page(p, self.page_index)[1] for p in path]
             self.select(tf.select_in_lasso(page, [(p.x(), p.y()) for p in poly]), self.page_index)
             self.canvas.viewport().update()
             return
@@ -185,7 +238,20 @@ class LassoTool(Tool):
             self.m = np.eye(3)
             self._show_bar()
 
+    @property
+    def rect_mode(self) -> bool:
+        return self.canvas.config.lasso_mode == "rect"
+
+    def _finish_tap_selection(self):
+        """Sélection ouverte en touchant un objet : un appui ailleurs la ferme et rend l'outil d'avant."""
+        mode, self.return_mode = self.return_mode, None
+        self.clear()
+        if self.state is not None:
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self.state.set_mode(mode))
+
     def dispose(self):
+        self.return_mode = None
         self.clear()
         self.bar.deleteLater()
 
@@ -202,7 +268,9 @@ class LassoTool(Tool):
         if not self.selection:
             self.clear()
             return
-        self.box = tf.bounds(self.selection)
+        pad = SELECTION_PAD / self.canvas.zoom  # cadre un peu plus large que les objets : on l'attrape mieux
+        x0, y0, x1, y1 = tf.bounds(self.selection)
+        self.box = (x0 - pad, y0 - pad, x1 + pad, y1 + pad)
         self.m = np.eye(3)
         page_id = self.canvas.doc.pages[page_index].id
         self.canvas.hidden_ids = {e.id for e in self.selection}
@@ -239,14 +307,15 @@ class LassoTool(Tool):
         if not self.selection:
             return
         self.bar.refresh()
-        c = self._corners_view()
-        bottom = max(p.y() for p in c)
+        c = self._corners_view() + [self._rotate_handle()]
+        top, bottom = min(p.y() for p in c), max(p.y() for p in c)
         left = min(p.x() for p in c)
         vp = self.canvas.viewport()
         x = int(min(max(4, left), vp.width() - self.bar.width() - 4))
-        y = int(bottom + 12)
-        if y + self.bar.height() > vp.height() - 4:
-            y = int(min(p.y() for p in c) - self.bar.height() - 12)
+        y = int(top - self.bar.height() - 16)  # au-dessus, hors de la main qui tient le stylet
+        if y < 4:
+            y = int(bottom + 16)
+        y = min(y, vp.height() - self.bar.height() - 4)
         self.bar.move(x, max(4, y))
         self.bar.show()
         self.bar.raise_()
@@ -284,6 +353,33 @@ class LassoTool(Tool):
             self._pick_color()
         elif key == "crop":
             self._crop()
+        elif key == "more":
+            self._more_menu()
+        elif key in ("front", "back"):
+            sel = self.selection
+            self.canvas.hidden_ids = {e.id for e in sel}
+            self.canvas.apply(Group([RemoveElements(page.id, sel), AddElements(page.id, sel, at_back=key == "back")]))
+            self.select(sel, self.page_index)
+        elif key == "save_image":
+            self._save_image()
+
+    def _more_menu(self):
+        from PySide6.QtWidgets import QMenu
+        menu = QMenu(self.bar)
+        for key, label in (("front", "Mettre au premier plan"), ("back", "Mettre à l'arrière-plan"),
+                           ("save_image", "Enregistrer en image…")):
+            menu.addAction(label, lambda k=key: self.action(k))
+        b = self.bar.buttons["more"]
+        menu.exec(b.mapToGlobal(b.rect().bottomLeft()))
+
+    def _save_image(self):
+        from PySide6.QtWidgets import QFileDialog
+        if self._sprite is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(self.canvas.window(), "Enregistrer la sélection en image",
+                                              "selection.png", "Image PNG (*.png)")
+        if path:
+            self._sprite.save(path if path.lower().endswith(".png") else path + ".png", "PNG")
 
     def recolor(self, value: str):
         def paint(e):
@@ -336,8 +432,12 @@ class LassoTool(Tool):
     # ----- dessin -----
     def paint_overlay(self, p: QPainter):
         if self.path:
-            path = QPainterPath(self.path[0])
-            for q in self.path[1:]:
+            pts = self.path
+            if self.rect_mode and len(pts) == 2:
+                a, b = pts
+                pts = [a, QPointF(b.x(), a.y()), b, QPointF(a.x(), b.y()), a]
+            path = QPainterPath(pts[0])
+            for q in pts[1:]:
                 path.lineTo(q)
             p.setPen(QPen(ACCENT, 1.5, Qt.PenStyle.DashLine))
             p.setBrush(QColor(38, 104, 108, 25))
@@ -360,7 +460,9 @@ class LassoTool(Tool):
         p.setPen(QPen(ACCENT, 1.5))
         p.setBrush(QColor("#ffffff"))
         for q in c:
-            p.drawRect(QRectF(q.x() - HANDLE, q.y() - HANDLE, 2 * HANDLE, 2 * HANDLE))
+            p.drawEllipse(q, HANDLE, HANDLE)
+        for q in self._side_handles():
+            p.drawRoundedRect(QRectF(q.x() - HANDLE, q.y() - HANDLE / 2, 2 * HANDLE, HANDLE), 3, 3)
         rh = self._rotate_handle()
         p.drawLine((c[0] + c[1]) / 2, rh)
         p.drawEllipse(rh, HANDLE + 1, HANDLE + 1)

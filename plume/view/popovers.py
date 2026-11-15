@@ -141,3 +141,26 @@ class EraserPopover(Popover):
         only.setChecked(spec.get("highlight_only", False))
         only.toggled.connect(lambda on: state.update_eraser(highlight_only=on))
         self.lay.addWidget(only)
+
+
+class LassoPopover(Popover):
+    def __init__(self, state):
+        super().__init__("Sélection")
+        self.state = state
+        row = QHBoxLayout()
+        group = QButtonGroup(self)
+        for key, label in (("free", "Lasso libre"), ("rect", "Rectangle")):
+            b = QPushButton(label)
+            b.setCheckable(True)
+            b.setChecked(state.config.lasso_mode == key)
+            b.clicked.connect(lambda _=False, k=key: self._set(k))
+            group.addButton(b)
+            row.addWidget(b)
+        self.lay.addLayout(row)
+        hint = QLabel("Astuce : touche un objet ou une image pour le sélectionner directement.")
+        hint.setWordWrap(True)
+        self.lay.addWidget(hint)
+
+    def _set(self, mode: str):
+        self.state.config.lasso_mode = mode
+        self.state.changed.emit()
