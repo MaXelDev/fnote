@@ -114,3 +114,14 @@ def test_robustness_hand_drawn():
         total += 1
         ok += got is not None and got[0] == "ellipse"
     assert ok / total >= 0.9, f"{ok}/{total}"
+
+
+def test_fast_rectangle_with_smoothed_corner():
+    """Trait rapide (points espacés) : le lissage arrondit un coin, qui ne doit pas devenir un 5e côté."""
+    from fnote.engine.smoothing import StreamSmoother
+    verts = [(380, 300), (470, 300), (470, 360), (380, 360), (380, 300)]
+    pts = [(a[0] + (b[0] - a[0]) * t / 12, a[1] + (b[1] - a[1]) * t / 12)
+           for a, b in zip(verts, verts[1:]) for t in range(12)] + [verts[0]]
+    sm = StreamSmoother()
+    kind, corners = recognize([sm.add((x, y, .5, i * 0.01)) for i, (x, y) in enumerate(pts)])
+    assert kind == "rect" and abs(corners[0][1] - corners[1][1]) < 0.5  # resté droit, pas penché

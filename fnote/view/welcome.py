@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout,
+from PySide6.QtWidgets import (QGridLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout,
                                QWidget)
 
 from . import icons
@@ -49,13 +49,13 @@ class Welcome(QWidget):
         self.vault_btn.clicked.connect(lambda: self.action.emit("vault"))
         box.addWidget(self.vault_btn, 0, Qt.AlignmentFlag.AlignHCenter)
 
-        row = QHBoxLayout()
-        for key, label, icon in (("new", "Nouvelle note", "plus"), ("template", "Sur un modèle PDF", "pdf"),
-                                 ("open", "Ouvrir", "note"), ("import", "Annoter un PDF", "pdf")):
+        row = QGridLayout()  # 2 × 2 : libellés entiers et grandes cibles pour le doigt
+        for i, (key, label, icon) in enumerate((("new", "Nouvelle note", "plus"), ("template", "Sur un modèle PDF", "pdf"),
+                                                ("open", "Ouvrir", "note"), ("import", "Annoter un PDF", "pdf"))):
             b = QPushButton(icons.icon(icon), "  " + label)
             b.setMinimumHeight(52)
             b.clicked.connect(lambda _=False, k=key: self.action.emit(k))
-            row.addWidget(b)
+            row.addWidget(b, i // 2, i % 2)
             if key == "new":
                 b.setDefault(True)
         self.actions_row = QWidget()

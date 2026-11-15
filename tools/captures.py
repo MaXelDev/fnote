@@ -98,6 +98,18 @@ dense = [(a[0] + (b[0] - a[0]) * k / 40, a[1] + (b[1] - a[1]) * k / 40) for a, b
 stroke(c, 0, {"tool": "ballpoint", "color": "#d32f2fff", "width": 1.4}, dense + [box[-1]])
 save(w, "note.png")
 
+# 1 bis. Appui long dans le vide : menu Coller / Insérer (fenêtre à part, collée sur la capture)
+at = c.page_to_view(0, 330, 200)
+w._long_press(tab, 0, None, at)
+menu = w._long_menu
+app.processEvents()
+shot = w.grab().toImage()
+painter = QPainter(shot)
+painter.drawPixmap(c.viewport().mapTo(w, at.toPoint()), menu.grab())
+painter.end()
+menu.hide()
+shot.save(str(OUT / "menu.png"))
+
 # 2. Annoter un sujet de TD en PDF
 pdf = pymupdf.open()
 pg = pdf.new_page()
@@ -135,6 +147,16 @@ for cx, cy in ((150, 140), (330, 140), (240, 260)):
         pen.move(q, .5, i)
     pen._on_hold()
     pen.release(pts[-1], .5, 99)
+for verts in ([(50, 320), (150, 320), (150, 380), (50, 380)],                        # rectangle
+              [(455 + 40 * math.cos(k / 6 * 6.283), 110 + 40 * math.sin(k / 6 * 6.283)) for k in range(6)]):  # hexagone
+    loop = verts + verts[:1]
+    pts = [c.page_to_view(0, a[0] + (b[0] - a[0]) * t / 12, a[1] + (b[1] - a[1]) * t / 12)
+           for a, b in zip(loop, loop[1:]) for t in range(12)] + [c.page_to_view(0, *loop[0])]
+    pen.press(pts[0], .5, 0)
+    for i, q in enumerate(pts[1:]):
+        pen.move(q, .5, i)
+    pen._on_hold()
+    pen.release(pts[-1], .5, 99)
 for a, b in (((182, 140), (298, 140)), ((170, 165), (220, 232)), ((310, 165), (260, 232))):
     stroke(c, 0, {"tool": "ballpoint", "color": "#1a1a1aff", "width": 1.3}, [a, b])
 c.ruler.toggle()
@@ -165,7 +187,7 @@ w2.show()
 w2.vault_dock.show()
 save(w2, "accueil.png")
 
-for name in ("note.png", "pdf.png", "regle.png", "lasso.png", "accueil.png"):
+for name in ("note.png", "menu.png", "pdf.png", "regle.png", "lasso.png", "accueil.png"):
     img = QImage(str(OUT / name))
     print(name, img.width(), "×", img.height())
 shutil.rmtree(tmp, ignore_errors=True)

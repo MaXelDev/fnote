@@ -1,4 +1,4 @@
-<p align="center"><img src="fnote/resources/fnote.svg" width="96" alt="Logo de FNote"></p>
+<p align="center"><img src="fnote/resources/fnote.svg" width="128" alt="Logo de FNote : une pointe de stylo-plume qui laisse un trait d'encre jaune"></p>
 
 <h1 align="center">FNote</h1>
 
@@ -13,7 +13,7 @@ Les applis de notes libres sous Linux marchent, mais l'encre traîne derrière l
 
 - **L'encre suit la pointe.** Seul le dernier segment est redessiné pendant le tracé, les traits finis sont « cuits » dans une image par page, aucun point du stylet n'est fusionné. Épaisseur selon la pression, lissage sans retard.
 - **Pas de curseur pendant l'écriture.** Il disparaît dès que le stylet approche de l'écran ; un petit point discret indique où tu vas écrire. Il revient quand tu touches la souris.
-- **La main posée ne dessine pas.** Le tactile est ignoré tant que le stylet est proche. Un doigt fait défiler, deux doigts zooment.
+- **La main posée ne dessine pas.** Le tactile est ignoré tant que le stylet est proche. Un doigt fait défiler, deux doigts zooment. Menus et boutons sont assez grands pour le doigt en mode tablette.
 - **Tes fichiers restent à toi.** Une note = un fichier `.fnote` dans ton vault, et (au choix) un `NomDeLaNote.pdf` à côté, prêt pour `![[NomDeLaNote.pdf]]` dans Obsidian. Aucun compte, aucun réseau.
 
 ## Ce que tu peux faire
@@ -23,19 +23,23 @@ Les applis de notes libres sous Linux marchent, mais l'encre traîne derrière l
 | ✍️ **Stylos** | plume (pression), bille, crayon ; 5 stylos favoris en un clic ; 16 encres + tes couleurs + récentes ; sélecteur HSV / RGB / HEX |
 | 🖍️ **Surligneur** | passe toujours *sous* l'encre, opacité uniforme même en repassant, option « surligneur droit », 5 couleurs |
 | 🧽 **Gomme** | trait entier ou partielle, taille réglable, « surligneur seulement » ; bouton latéral du stylet maintenu = gomme |
-| ➰ **Lasso** | déplacer, redimensionner (proportions), pivoter, recolorer, épaissir, copier/couper/coller, dupliquer |
-| ⬭ **Formes** | trace un cercle, un rectangle, une flèche… et garde le stylet immobile une demi-seconde : la forme devient parfaite |
+| ➰ **Lasso** | libre ou rectangle ; un simple appui sélectionne un trait ou une image ; déplacer, redimensionner (coins proportionnels, côtés dans un sens), pivoter, recolorer, épaissir, copier/couper/coller, dupliquer, premier/arrière-plan |
+| ⬭ **Formes** | trace un cercle, un rectangle, un triangle, un losange, un hexagone, une flèche… et garde le stylet immobile une demi-seconde : la forme devient parfaite (bouton *Formes* de la barre) |
+| 👆 **Appui long** | reste appuyé une seconde (stylet, doigt ou souris) : sur un élément, il est sélectionné ; dans le vide, menu *Coller ici*, *Insérer une image ici*, *Ajouter une page*, *Tout sélectionner* |
 | 📏 **Règle** | graduée en cm, pivotable aux deux doigts, aimantée à 0/15/30/45/90° ; le trait se colle à son bord |
-| 📄 **PDF** | annote tes sujets de TD et polys, insère des pages vierges pour tes calculs, exporte en PDF vectoriel (texte d'origine sélectionnable) |
-| 🖼️ **Images** | insère, colle une capture d'écran (Ctrl+V), glisse-dépose, recadre |
+| 📄 **PDF** | annote tes sujets de TD et polys, insère des pages vierges pour tes calculs, exporte en PDF vectoriel (texte d'origine sélectionnable) ; un PDF peut servir de **modèle de feuille** pour tes nouvelles notes, répété à chaque nouvelle page |
+| 🖼️ **Images** | insère, colle une capture d'écran (Ctrl+V), glisse-dépose ; touche-la pour la sélectionner, puis recadre, déplace, agrandis ou supprime |
 | 🗂️ **Organisation** | panneau du vault, dossiers, renommer, déplacer, corbeille ; plusieurs notes en onglets ; fonds blanc / ligné / quadrillé / pointillé |
 
 <p align="center">
+<img src="docs/screenshots/menu.png" alt="Menu de l'appui long : coller, insérer une image, ajouter une page" width="410">
 <img src="docs/screenshots/pdf.png" alt="Annotation d'un sujet de TD en PDF" width="410">
-<img src="docs/screenshots/regle.png" alt="Formes auto-corrigées et règle virtuelle" width="410">
 </p>
 <p align="center">
-<img src="docs/screenshots/lasso.png" alt="Sélection au lasso" width="410">
+<img src="docs/screenshots/regle.png" alt="Formes auto-corrigées (cercles, rectangle, hexagone) et règle virtuelle" width="410">
+<img src="docs/screenshots/lasso.png" alt="Sélection au lasso avec sa barre d'actions" width="410">
+</p>
+<p align="center">
 <img src="docs/screenshots/accueil.png" alt="Écran d'accueil" width="410">
 </p>
 
@@ -53,7 +57,7 @@ Désinstaller : `./uninstall.sh` (tes notes et tes paramètres sont conservés).
 ## Premiers pas
 
 1. Au premier lancement, choisis ton dossier de notes (ton vault Obsidian par exemple).
-2. **Nouvelle note** (Ctrl+N) ou **Annoter un PDF** depuis l'accueil — ou double-clique un PDF dans le panneau des notes.
+2. **Nouvelle note** (Ctrl+N), **Sur un modèle PDF** (Ctrl+Maj+N) ou **Annoter un PDF** depuis l'accueil — ou double-clique un PDF dans le panneau des notes.
 3. Écris. Tout est enregistré automatiquement quelques secondes après ton dernier trait.
 
 Si le stylet ne se comporte pas comme prévu : *Menu → Aide → Diagnostic du stylet* (ou `fnote --debug-tablet`) affiche en direct la pression, l'inclinaison, les boutons et la proximité.
@@ -66,6 +70,7 @@ Si le stylet ne se comporte pas comme prévu : *Menu → Aide → Diagnostic du 
 | P | stylo | Ctrl+C / X / V | copier / couper / coller |
 | H | surligneur | Ctrl+D, Suppr | dupliquer, supprimer la sélection |
 | E | gomme | Ctrl+I | insérer une image |
+| | | Ctrl+N, Ctrl+Maj+N | nouvelle note, sur un modèle PDF |
 | L | lasso | Ctrl+Maj+I, Ctrl+E | importer / exporter un PDF |
 | R | règle | Ctrl+molette, Ctrl+0 | zoom, ajuster à la largeur |
 | F9 | panneau des notes | F11 | plein écran |
@@ -77,7 +82,7 @@ Un **second appui** sur l'outil actif ouvre ses réglages (couleur, épaisseur, 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 git config core.hooksPath .githooks   # pytest avant chaque commit
-.venv/bin/pytest -q                   # 120+ tests, sans matériel
+.venv/bin/pytest -q                   # 140+ tests, sans matériel
 .venv/bin/fnote --debug-perf          # fps et temps de rendu à l'écran
 ```
 
