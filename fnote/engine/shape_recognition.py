@@ -103,8 +103,11 @@ def _rectangle(xy, verts) -> list | None:
         cosang = abs(np.dot(e1, e2)) / (np.linalg.norm(e1) * np.linalg.norm(e2) + 1e-9)
         if cosang > 0.26:  # > ~15° d'écart avec l'angle droit : losange, parallélogramme…
             return None
-    longest = edges[np.argmax(np.linalg.norm(edges, axis=1))]
-    theta = _snap_angle(math.atan2(longest[1], longest[0]))
+    # Orientation moyenne des 4 côtés (modulo 90°, pondérée par leur longueur) : un coin
+    # arrondi par le lissage ne fait plus pencher tout le rectangle.
+    ang = np.arctan2(edges[:, 1], edges[:, 0]) * 4
+    w = np.linalg.norm(edges, axis=1)
+    theta = _snap_angle(math.atan2(float(w @ np.sin(ang)), float(w @ np.cos(ang))) / 4)
     local = xy @ _rot(theta)
     lo, hi = local.min(axis=0), local.max(axis=0)
     center = _rot(theta) @ ((hi + lo) / 2)
@@ -215,7 +218,7 @@ def _corners(ring: np.ndarray, diag: float) -> list[int]:
             e1, e2 = b - a, c - b
             l1, l2 = np.linalg.norm(e1), np.linalg.norm(e2)
             turn = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(e1, e2) / (l1 * l2 + 1e-9))))))
-            if turn < 28 or min(l1, l2) < 0.08 * diag:
+            if turn < 28 or min(l1, l2) < 0.15 * diag:  # coin arrondi par le lissage (trait rapide)
                 del idx[j]
                 changed = True
                 break
