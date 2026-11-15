@@ -1,23 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <title>FNote</title>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2f7c80"/>
-      <stop offset="1" stop-color="#1c4f52"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#3a9196"/><stop offset="1" stop-color="#1d5458"/>
     </linearGradient>
   </defs>
-  <rect x="12" y="12" width="232" height="232" rx="56" fill="url(#bg)"/>
-  <!-- page -->
-  <rect x="58" y="44" width="124" height="160" rx="12" fill="#ffffff" opacity="0.96"/>
-  <g stroke="#c9d3df" stroke-width="3" stroke-linecap="round">
-    <line x1="76" y1="84" x2="164" y2="84"/>
-    <line x1="76" y1="108" x2="164" y2="108"/>
-    <line x1="76" y1="132" x2="140" y2="132"/>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bg)"/>
+  <path d="M84 174 C 104 196, 128 160, 152 184 S 186 188, 198 172" fill="none" stroke="#ffd34d" stroke-width="12" stroke-linecap="round"/>
+  <g transform="rotate(45 150 106)">
+    <path d="M150 196 L 112 120 C 108 104, 114 84, 124 76 H 176 C 186 84, 192 104, 188 120 Z" fill="#ffffff"/>
+    <rect x="120" y="42" width="60" height="30" rx="8" fill="#ffffff" opacity="0.75"/>
+    <path d="M150 192 V 128" stroke="#1d5458" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="150" cy="122" r="10" fill="#1d5458"/>
   </g>
-  <!-- trait manuscrit -->
-  <path d="M78 160 C 92 140, 102 176, 116 156 S 140 150, 150 162" fill="none" stroke="#1f5fd1" stroke-width="6" stroke-linecap="round"/>
-  <!-- plume -->
-  <path d="M206 40 C 168 52, 136 86, 122 140 L 132 146 C 166 112, 196 82, 206 40 Z" fill="#ffe066"/>
-  <path d="M206 40 C 176 70, 150 104, 127 143" fill="none" stroke="#c99a1e" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M122 140 L 114 170 L 132 146 Z" fill="#15181d"/>
 </svg>
